@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="UTF-8">
+  <title>Home / CoffeeDog</title>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS and Font Awesome -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    
+    <!--Moment js javascript (for plotting time on x-axis) MUST BE INCLUDED BEFORE CHART JS-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Chart.js javascript-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"></script>
+  </head>
+
+
+<body>
+      <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <!-- Bootstrap uses slim build of jquery, which does not have ajax. Using ajax from google -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+  
+<div class="container">
+  
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+        {% if (message[0])|string == "S" %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+           {{ message }}
+  
+        </div>
+  
+        {% else %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+           {{ message }}
+  
+        </div>
+        {% endif %}
+  
+    {% endfor %}
+    </ul>
+  {% endif %}
+  {% endwith %}
+  </div>
+  <div class="hero-text">
+    <h1 style="font-size:50px">PongDog</h1>
+    <p>Sniffing ID cards for Ping pong data. Sniff sniff...<br>Join today for the ultimate ping pong experience!</p>
+
+    <a data-toggle="modal" data-target="#modal_work" type="submit"><button>Register card</button></a>
+  </div>
+</body>
+
+   <!-- Modal for adding match -->
+   <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" id="modal_work">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Register student card</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidd en="true">&times;</span>
+        </button>
+        </div>
+        <div class="modal-body">
+          <p>Register your NTNU student card to get started with your PongDogging experience.</p>
+          <p><i>Note that registering a card might take a couple of seconds. Be patient!</i></p>
+          <form action="https://jakvah.pythonanywhere.com/add_new_pong_user" enctype=multipart/form-data method="POST">
+            <div class="form-group">
+              <label for="exampleInputEmail1">Card ID</label>
+              <input name="card_id" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter card ID" required>
+              <small id="emailHelp" class="form-text text-muted">This is the <strong>EM </strong>number at your card NTNU card.</small>
+              
+            </div>
+            <div class="form-group">
+              <label for="exampleInputPassword1">Card name</label>
+              <input name="card_name" class="form-control" id="exampleInputPassword1" placeholder="Name associated with card">
+            </div>
+            <div class="form-group">
+              <label for="userImg">Add user image</label>
+              <input type="file" class="form-control-file" id="file" name="file">
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="exampleCheck1" required>
+              <label class="form-check-label" for="exampleCheck1" required>I'm not a robot</label>
+            </div>
+            <button onclick="showDiv()" type="submit" class="btn btn-success">Register card</button>
+          </form>
+          <div id="hiddenMeme" style="display:none;" class="container">
+                          <!-- 2 -->
+
+              <div class="loader loader--style2" title="1">
+                <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                  width="40px" height="40px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">
+                <path fill="#000" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
+                  <animateTransform attributeType="xml"
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 25 25"
+                    to="360 25 25"
+                    dur="0.6s"
+                    repeatCount="indefinite"/>
+                  </path>
+                </svg>
+                
+              </div>
+              <h5 style="padding-top: 1em;display: inline;">Adding match! While waiting, here is meme!</h5>
+
+            <img src="https://media.discordapp.net/attachments/629733041199251495/786296489877307482/10_man.png?width=690&height=675" img-fluid alt="10manMeme">
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+</body>
+
+<!-- Modal content ends-->
+<style>
+  body {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),  url('../static/datalogo.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+  }
+  .hero-text {
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+}
+.hero-text button {
+  border: none;
+  outline: 0;
+  display: inline-block;
+  padding: 10px 25px;
+  color: black;
+  background-color: #ddd;
+  text-align: center;
+  cursor: pointer;
+}
+
+.hero-text button:hover {
+  background-color:orange;
+  color: white;
+}
+  </style>
