@@ -2,7 +2,10 @@
 import evdev
 from evdev import categorize, ecodes
 import time
-import gpiozero
+from gpiozero import LED
+
+p1_led = LED(18)
+p2_led = LED(4)
 
 class Device():
     name = 'Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader'
@@ -28,7 +31,7 @@ class Device():
             exit()
 
     @classmethod
-    def run(cls, timeOut):
+    def run(cls):
         device = cls.connect()
         container = []
         try:
@@ -56,26 +59,42 @@ class Device():
 
 
 def read_cards():
+
     while True:
+        p1_led.off()
+        p2_led.off()
         print("Player 1, please scan card")
-        player1 = Device.run(0)
+        player1 = Device.run()
 
         print("Player 1, card ID:" + player1)
-
+        p1_led.on()
         # light up lys #1 
         print("Player 2, please scan card")
 
-        player2 = Device.run(1)
+        player2 = Device.run()
         print("Player 2, card ID:" + player2)
         if player1 == player2:
+            p1_led.off()
+            p2_led.off()
             print("Error! Same card detected!")
+            time.sleep(1)
+            # blink rødt lys
         else:
             break
     print("Two unique cards detected wahoo")
+    p2_led.on()
+    time.sleep(1)
+    p1_led.off()
+    p2_led.off()
+    p1_led.blink(0.1,0.1,10)
+    p2_led.blink(0.1,0.1,10)
+    while True:
+        pass
     # light up lys #2
-    initiate_game()
 
-def initiate_game():
+
+
+def initiate_game(abort):
     print("HAWA")
 
 read_cards()
