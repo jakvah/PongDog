@@ -1,6 +1,7 @@
 
 import evdev
 from evdev import categorize, ecodes
+from select import select
 import time
 from gpiozero import LED
 
@@ -39,19 +40,24 @@ class Device():
             # bind the device to the script
             #print("RFID scanner is ready....")
             #print("Press Control + c to quit.")
-            for event in device.read_loop():
-                    # enter into an endeless read-loop
-                    if event.type == ecodes.EV_KEY and event.value == 1:
-                        digit = evdev.ecodes.KEY[event.code]
-                        if digit == 'KEY_ENTER':
-                            # create and dump the tag
-                            tag = "".join(i.strip('KEY_') for i in container)
-                            return tag
-                            print(tag)
-                            container = []
-                        else:
-                            container.append(digit)
-
+            while True:
+                select([device], [], [], 2)
+                try:
+                    for event in device.read():
+                            # enter into an endeless read-loop
+                            if event.type == ecodes.EV_KEY and event.value == 1:
+                                digit = evdev.ecodes.KEY[event.code]
+                                if digit == 'KEY_ENTER':
+                                    # create and dump the tag
+                                    tag = "".join(i.strip('KEY_') for i in container)
+                                    return tag
+                                    print(tag)
+                                    container = []
+                                else:
+                                    container.append(digit)
+                except BlockingIOError:
+                    print("Timeout!")
+                    return str(0)
         except:
             # catch all exceptions to be able release the device
             device.ungrab()
@@ -70,8 +76,8 @@ def read_cards():
         p1_led.on()
         # light up lys #1 
         print("Player 2, please scan card")
-
         player2 = Device.run()
+        
         print("Player 2, card ID:" + player2)
         if player1 == player2:
             p1_led.off()
