@@ -41,7 +41,7 @@ class Device():
             #print("RFID scanner is ready....")
             #print("Press Control + c to quit.")
             while True:
-                select([device], [], [], 2)
+                select([device], [], [], 5)
                 try:
                     for event in device.read():
                             # enter into an endeless read-loop
@@ -56,7 +56,7 @@ class Device():
                                 else:
                                     container.append(digit)
                 except BlockingIOError:
-                    print("Timeout!")
+                    print("Card-reader timed out.")
                     return str(0)
         except:
             # catch all exceptions to be able release the device
@@ -69,16 +69,23 @@ def read_cards():
     while True:
         p1_led.off()
         p2_led.off()
+
         print("Player 1, please scan card")
         player1 = Device.run()
-
+        if player1 == "0":
+            continue # card reader timed out
         print("Player 1, card ID:" + player1)
+        #if check_card(player1) != riktig svar
+            #play_denied()
+            #continue
         p1_led.on()
-        # light up lys #1 
+
         print("Player 2, please scan card")
         player2 = Device.run()
-        
+        if player2 == "0":
+            continue # card reader timed out
         print("Player 2, card ID:" + player2)
+
         if player1 == player2:
             p1_led.off()
             p2_led.off()
@@ -86,6 +93,9 @@ def read_cards():
             time.sleep(1)
             # blink rødt lys
         else:
+            #if checkCard(player2) != riktig svar
+                #play_denied()
+                #continue
             break
     print("Two unique cards detected wahoo")
     p2_led.on()
@@ -98,7 +108,9 @@ def read_cards():
         pass
     # light up lys #2
 
-
+#checks if user registered on PongDog
+def check_card(ID):
+    return 0
 
 def initiate_game(abort):
     print("HAWA")
