@@ -4,6 +4,7 @@ from evdev import categorize, ecodes
 from select import select
 import time
 from gpiozero import LED
+import requests
 
 p1_led = LED(18)
 p2_led = LED(4)
@@ -64,20 +65,21 @@ class Device():
             print('Quitting.')
 
 
+#reads cards and makes sure that the cards exists in the database. Also handles duplicate cards
 def read_cards():
-
     while True:
         p1_led.off()
         p2_led.off()
 
         print("Player 1, please scan card")
         player1 = Device.run()
+        player1 = "20203020"
         if player1 == "0":
             continue # card reader timed out
         print("Player 1, card ID:" + player1)
-        #if check_card(player1) != riktig svar
+        if check_card(player1) != "200":
             #play_denied()
-            #continue
+            continue
         p1_led.on()
 
         print("Player 2, please scan card")
@@ -108,11 +110,47 @@ def read_cards():
         pass
     # light up lys #2
 
-#checks if user registered on PongDog
-def check_card(ID):
-    return 0
+#checks if user registered on PongDog. Returns True if card is registered, false if not or error occurs.
+def check_card(card_id):
+    url = f"https://jakvah.pythonanywhere.com/get_card_status/{card_id}"
+    r = requests.get(url)
+    print(r.text)
+    if r.text == "200":
+        print(r.text)
+        return True
+    elif r.text == "300":
+        print(r.text)
+        return False
+    else:
+        return False
 
-def initiate_game(abort):
+#check if a match is running. Returns 0 if available, 1 if busy, 2 if error.
+def check_game_state():
+    url = f"https://jakvah.pythonanywhere.com/get_match_status"
+    r = requests.get(url)
+    print(r.text)
+    if r.text == "200":
+        return 1
+    elif r.text == "300":
+        return 0
+    else:
+        return 2
+
+# Resets the backend. Returns True if reset successful.
+def reset_match():
+    url = f"https://jakvah.pythonanywhere.com/reset_match_status/pongdg4life"
+    r = requests.post(url)
+    print(r.text)
+    if r.text == "200":
+        return True
+    else:
+        return False
+
+
+def initiate_game():
+    p1_score = 0
+    p2_score = 0
+
     print("HAWA")
 
 read_cards()
