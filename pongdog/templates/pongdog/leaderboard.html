@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+    <head>
+     <!-- Required meta tags -->
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+ 
+     <!-- Bootstrap CSS and Font Awesome -->
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+     
+     <!--Moment js javascript (for plotting time on x-axis) MUST BE INCLUDED BEFORE CHART JS-->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+     <!-- Chart.js javascript-->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"></script>
+    
+     <!-- Logo Icon -->
+     <link rel="icon" href="{{ url_for('static',filename='data_logo.png') }}">
+  
+  </head>
+<body>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <!-- Bootstrap uses slim build of jquery, which does not have ajax. Using ajax from google -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+  
+
+<div class="container"> 
+  <div class="row" style="margin-top: 20px; margin-bottom: 45px;">
+    <div class="col-md-12">
+      <div class="progress">
+        <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="70"
+        aria-valuemin="0" aria-valuemax="100" style="width:70%">
+          250 games played
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>  
+<!--Leaderboard content -->
+
+<div class="container d-flex justify-content-center" id="lbContent">
+  <!-- Loading circle  -->
+
+        <div class="container" style="width: 100%; text-align: center;">
+        <div class="loader loader--style2" title="1">
+            <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              width="80px" height="80px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve"> 
+            <path fill="#000" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
+              <animateTransform attributeType="xml"
+                attributeName="transform"
+                type="rotate"
+                from="0 25 25"
+                to="360 25 25"
+                dur="0.6s"
+                repeatCount="indefinite"/>
+              </path>
+            </svg>            
+          </div>
+        </div>
+</div>
+
+<!--End of leaderboard content -->
+
+</body>
+
+<script>
+  var leaderBoardHTML;
+  var latestDogHTML;
+setInterval(function()
+{ 
+    $.ajax({
+        type: "get",
+        url: "https://jakvah.pythonanywhere.com/get_pongdog_leaderboard",
+        success:function(res)
+        {
+            leaderBoardHTML = "";
+            leaderBoardHTML += '<div class="center">';
+            leaderBoardHTML += '<div class="top3">';
+
+            leaderBoardHTML += '<div class="two item">';
+            leaderBoardHTML += '<div class="pos">' + 2 + '</div><div class="pic" style="background-image: url(&#39;https://jakvah.pythonanywhere.com/static/imgs/' + res["scores"][1].id.toString() + '&#39;)"></div>';
+            leaderBoardHTML += '<div class="name">' + res["scores"][1].name + '</div>';
+            leaderBoardHTML += '<div class="score">' + res["scores"][1].score + '<i style = "padding-left:5px;"class="fas fa-chart-line"></i></div></div>';
+
+            leaderBoardHTML += '<div class="one item">';
+            leaderBoardHTML += '<div class="pos">' + 1 + '</div><div class="pic" style="background-image: url(&#39;https://jakvah.pythonanywhere.com/static/imgs/' + res["scores"][0].id.toString() + '&#39;)"></div>';
+            leaderBoardHTML += '<div class="name">' + res["scores"][0].name + '</div>';
+            leaderBoardHTML += '<div class="score">' + res["scores"][0].score + '<i style = "padding-left:5px;"class="fas fa-chart-line"></i></div></div>';
+
+            leaderBoardHTML += '<div class="three item">';
+            leaderBoardHTML += '<div class="pos">' + 3 + '</div><div class="pic" style="background-image:url(&#39;https://jakvah.pythonanywhere.com/static/imgs/' + res["scores"][2].id.toString() + '&#39;)"></div>';
+            leaderBoardHTML += '<div class="name">' + res["scores"][2].name + '</div>';
+            leaderBoardHTML += '<div class="score">' + res["scores"][2].score + '<i style = "padding-left:5px;" class="fas fa-chart-line"></i></div></div>';
+            leaderBoardHTML += '</div>'; 
+
+            leaderBoardHTML += '<div class="list">';
+
+            
+
+            
+            $.each(res["scores"],function(index,value) {
+              if (index > 2) {
+                leaderBoardHTML += '<div class="item">';
+                leaderBoardHTML += '<div class="pos">' + value.rank + '</div>';
+                leaderBoardHTML += '<div class="pic" style="background-image: url(&#39;https://jakvah.pythonanywhere.com/static/imgs/' + value.id.toString() + '&#39;)"></div>';
+                leaderBoardHTML += '<div class="name">' + value.name + '</div>';
+                leaderBoardHTML +=  '<div class="score">' + value.score + '</div></div>';        
+        
+        
+        
+              }
+            });
+
+            leaderBoardHTML += '</div>';
+            
+
+  
+        }
+    });
+    $("#lbContent").html(leaderBoardHTML);
+
+
+}, 2000);
+
+</script>
+
+
+
+
+<!--Loading circle -->
+<style type="text/css">
+  .loader{
+   margin: 0 0 2em;
+   height: 100px;
+   width: 20%;
+   text-align: center;
+   padding-top: 1em;
+   /*margin: 0 auto 1em;*/
+   display: inline-block;
+   /*vertical-align: top;*/
+ }
+ 
+ /*
+   Set the color of the icon
+ */
+ svg path,
+ svg rect{
+   fill: #6eb8f5;
+ }
+ 
+ </style>
+
+<!-- Leaderboard style-->
+<style>
+    @import url("https://fonts.googleapis.com/css?family=Red+Hat+Display:400,900&display=swap");
+body, html {
+  height: 100%;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),  url('../static/pongdog_bg.jpg');
+  /*background: #4d257a;*/
+  color: #333;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.bg {
+  /* The image used */
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),  url('../static/pongdog_bg.jpg');
+
+  /* Full height */
+  height: 100%; 
+
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/*
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  font-family: "Red Hat Display", sans-serif;
+}
+*/
+.top3 {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  color: #4B4168;
+}
+.top3 .item {
+  box-sizing: border-box;
+  position: relative;
+  background: white;
+  width: 9rem;
+  height: 11rem;
+  text-align: center;
+  padding: 2.8rem 0 0;
+  margin: 1rem 1rem 2rem;
+  border-radius: 0.5rem;
+  transform-origin: bottom;
+  cursor: pointer;
+  transition: transform 200ms ease-in-out;
+  box-shadow: 0 0 4rem 0 rgba(0, 0, 0, 0.1), 0 1rem 2rem -1rem rgba(0, 0, 0, 0.3);
+}
+.top3 .item .pic {
+  position: absolute;
+  top: -2rem;
+  left: 2.5rem;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  margin-right: 1rem;
+  box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2), 0 1rem 1rem -0.5rem rgba(0, 0, 0, 0.3);
+}
+.top3 .item .pos {
+  font-weight: 900;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.top3 .item .name {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.top3 .item .score {
+  opacity: 0.7;
+}
+.top3 .item .score:after {
+  display: block;
+  content: "";
+  opacity: 0.7;
+}
+.top3 .item.one {
+  width: 10rem;
+  height: 12rem;
+  padding-top: 3.5rem;
+}
+.top3 .item.one .pic {
+  width: 5rem;
+  height: 5rem;
+  left: 2.5rem;
+}
+.top3 .item:hover {
+  transform: scale(1.05);
+}
+
+.list {
+  padding-left: 2rem;
+  margin: 0 auto;
+}
+.list .item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  height: 3rem;
+  border-radius: 4rem;
+  margin-bottom: 2rem;
+  background: #EAA786;
+  transform-origin: left;
+  cursor: pointer;
+  transition: transform 200ms ease-in-out;
+  box-shadow: 0 0 4rem 0 rgba(0, 0, 0, 0.1), 0 1rem 2rem -1rem rgba(0, 0, 0, 0.3);
+}
+.list .item .pos {
+  font-weight: 900;
+  position: absolute;
+  left: -2rem;
+  text-align: center;
+  font-size: 1.25rem;
+  width: 1.5rem;
+  color: white;
+  opacity: 0.8;
+  transition: opacity 200ms ease-in-out;
+}
+.list .item .pic {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  margin-right: 1rem;
+  box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2), 0 1rem 1rem -0.5rem rgba(0, 0, 0, 0.3);
+}
+.list .item .name {
+  flex-grow: 2;
+  flex-basis: 10rem;
+  font-size: 1.1rem;
+}
+.list .item .score {
+  margin-right: 1.5rem;
+  opacity: 0.8;
+}
+.list .item .score:after {
+  margin-right: 1rem;
+  content: " elo";
+  opacity: 0.8;
+}
+.list .item:hover {
+  transform: scale(1.05);
+}
+.list .item:hover .pos {
+  opacity: 0.8;
+}
+</style>

@@ -38,6 +38,11 @@ def add_pong_dog():
         flash(flash_str)
         return redirect("/pongdog/register")
 
+
+@app.route("/pongdog/leaderboard")
+def leaderboard():
+    return render_template("pongdog/leaderboard.html")
+
 @app.route("/test")
 def test():
     return render_template("test.html")
