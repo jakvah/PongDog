@@ -5,6 +5,7 @@ from select import select
 import time
 from gpiozero import LED
 import requests
+import datetime
 
 p1_led = LED(18)
 p2_led = LED(4)
@@ -64,6 +65,13 @@ class Device():
             device.ungrab()
             print('Quitting.')
 
+def get_timestamp():
+    dato = str(datetime.datetime.now())
+    date = dato.split(' ')[0]
+    klokkeslett = dato.split(' ')[1]
+    dog = klokkeslett.split('.')[0]
+    fulltimestamp = date+'T'+dog
+    return fulltimestamp
 
 #reads cards and makes sure that the cards exists in the database. Also handles duplicate cards
 def read_cards():
@@ -72,51 +80,48 @@ def read_cards():
         p2_led.off()
 
         print("Player 1, please scan card")
-        player1 = Device.run()
-        player1 = "20203020"
+        #player1 = Device.run()
+        player1 = "128"
         if player1 == "0":
             continue # card reader timed out
         print("Player 1, card ID:" + player1)
-        if check_card(player1) != "200":
+        p1_led.blink(0.1,0.1,30)
+        if not check_card(player1):
             #play_denied()
             continue
         p1_led.on()
 
         print("Player 2, please scan card")
-        player2 = Device.run()
+        #player2 = Device.run()
+        player2 = "224"
         if player2 == "0":
             continue # card reader timed out
         print("Player 2, card ID:" + player2)
 
-        if player1 == player2:
+        if player1 == player2: # same card inserted
             p1_led.off()
             p2_led.off()
             print("Error! Same card detected!")
+            #play_denied()
             time.sleep(1)
-            # blink rødt lys
+            continue
         else:
-            #if checkCard(player2) != riktig svar
+            p2_led.blink(0.1,0.1,30)
+            if not check_card(player2): # card does not exist
                 #play_denied()
-                #continue
+                continue #start over
+            p2_led.on()
             break
     print("Two unique cards detected wahoo")
-    p2_led.on()
-    time.sleep(1)
-    p1_led.off()
-    p2_led.off()
-    p1_led.blink(0.1,0.1,10)
-    p2_led.blink(0.1,0.1,10)
-    while True:
-        pass
+    return player1, player2
+    
     # light up lys #2
 
 #checks if user registered on PongDog. Returns True if card is registered, false if not or error occurs.
 def check_card(card_id):
     url = f"https://jakvah.pythonanywhere.com/get_card_status/{card_id}"
     r = requests.get(url)
-    print(r.text)
     if r.text == "200":
-        print(r.text)
         return True
     elif r.text == "300":
         print(r.text)
@@ -124,14 +129,14 @@ def check_card(card_id):
     else:
         return False
 
-#check if a match is running. Returns 0 if available, 1 if busy, 2 if error.
+#check if a match is running. Returns 1 if available, 0 if busy, 2 if error.
 def check_game_state():
     url = f"https://jakvah.pythonanywhere.com/get_match_status"
     r = requests.get(url)
-    print(r.text)
-    if r.text == "200":
+    print("check_game_state: "+ r.text)
+    if r.text == "300":
         return 1
-    elif r.text == "300":
+    elif r.text == "200":
         return 0
     else:
         return 2
@@ -139,18 +144,40 @@ def check_game_state():
 # Resets the backend. Returns True if reset successful.
 def reset_match():
     url = f"https://jakvah.pythonanywhere.com/reset_match_status/pongdg4life"
+    r = requests.get(url)
+    print("reset_match: "+r.text)
+    if r.text == "200":
+        return True
+    else:
+        return False
+
+# Sends the player ID's and timestamp to backend. Returns true if succeeded.
+def start_match(p1_id, p2_id):
+    time_now = get_timestamp()
+    url = f"https://jakvah.pythonanywhere.com/init_match/{p1_id}/{p2_id}/{time_now}"
     r = requests.post(url)
-    print(r.text)
+    print("start_match: "+r.text)
     if r.text == "200":
         return True
     else:
         return False
 
 
-def initiate_game():
-    p1_score = 0
-    p2_score = 0
+# checks that a game isn't running and sends p1 and p2 and timestamp to backend. Returns true if all good.
+def initiate_game(player1, player2):
+    if check_game_state() != 1:
+        print("game currently underway!")
+        return False
+    if start_match(player1,player2):
+        return True
+    else:
+        print("start_match(): Failed to start game")
+        return False
 
-    print("HAWA")
-
-read_cards()
+#read_cards()
+while True:
+    reset_match()
+    time.sleep(1)
+    p1, p2 = read_cards()
+    initiate_game(p1, p2)
+    time.sleep(10)
