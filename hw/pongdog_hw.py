@@ -130,10 +130,10 @@ def check_card(card_id):
         return False
 
 #check if a match is running. Returns 1 if available, 0 if busy, 2 if error.
-def check_game_state():
+def get_match_status():
     url = f"https://jakvah.pythonanywhere.com/get_match_status"
     r = requests.get(url)
-    print("check_game_state: "+ r.text)
+    print("get_match_status: "+ r.text)
     if r.text == "300":
         return 1
     elif r.text == "200":
@@ -165,7 +165,7 @@ def start_match(p1_id, p2_id):
 
 # checks that a game isn't running and sends p1 and p2 and timestamp to backend. Returns true if all good.
 def initiate_game(player1, player2):
-    if check_game_state() != 1:
+    if get_match_status() != 1:
         print("game currently underway!")
         return False
     if start_match(player1,player2):
@@ -174,10 +174,8 @@ def initiate_game(player1, player2):
         print("start_match(): Failed to start game")
         return False
 
-#read_cards()
-while True:
-    reset_match()
-    time.sleep(1)
+
+while True: 
     p1, p2 = read_cards()
     initiate_game(p1, p2)
-    time.sleep(10)
+    #poll buttons
