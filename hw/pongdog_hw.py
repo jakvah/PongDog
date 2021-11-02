@@ -1,14 +1,26 @@
-
+import os
 import evdev
 from evdev import categorize, ecodes
 from select import select
+from signal import pause
+import signal
 import time
 from gpiozero import LED
+from gpiozero import Button 
 import requests
 import datetime
 
 p1_led = LED(18)
 p2_led = LED(4)
+p1_button = Button(26)
+p2_button = Button(20)
+
+def handleSignal(num, stack):
+    return 0
+
+signal.signal(signal.SIGUSR1, handleSignal)
+
+
 
 class Device():
     name = 'Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader'
@@ -80,8 +92,8 @@ def read_cards():
         p2_led.off()
 
         print("Player 1, please scan card")
-        #player1 = Device.run()
-        player1 = "128"
+        player1 = Device.run()
+        #player1 = "128"
         if player1 == "0":
             continue # card reader timed out
         print("Player 1, card ID:" + player1)
@@ -92,8 +104,8 @@ def read_cards():
         p1_led.on()
 
         print("Player 2, please scan card")
-        #player2 = Device.run()
-        player2 = "224"
+        player2 = Device.run()
+        #player2 = "224"
         if player2 == "0":
             continue # card reader timed out
         print("Player 2, card ID:" + player2)
@@ -162,7 +174,6 @@ def start_match(p1_id, p2_id):
     else:
         return False
 
-
 # checks that a game isn't running and sends p1 and p2 and timestamp to backend. Returns true if all good.
 def initiate_game(player1, player2):
     if get_match_status() != 1:
@@ -174,8 +185,51 @@ def initiate_game(player1, player2):
         print("start_match(): Failed to start game")
         return False
 
+#Increments the score for the players. Had to be written twice because you can't pass arguments when reading from a button
+def increment_score_p1():
+    p1_led.blink(0.05,0.05,10)
+    url = f"https://jakvah.pythonanywhere.com/increment_score/{1}"
+    r = requests.get(url)
+    print("increment score: "+r.text)
+    if r.text == "200":
+        p1_led.on()
+        if get_match_status(): # game is over
+            os.kill(os.getpid(), signal.SIGUSR1) #exit pause()
+            print("match over")
+            return
+        time.sleep(2)
+        return
+    else:
+        print("Could not increment score")
+        return
+
+# as above
+def increment_score_p2():
+    p2_led.blink(0.05,0.05,10)
+    url = f"https://jakvah.pythonanywhere.com/increment_score/{2}"
+    r = requests.get(url)
+    print("increment score: "+r.text)
+    if r.text == "200":
+        p2_led.on()
+        if get_match_status(): # game is over
+            os.kill(os.getpid(), signal.SIGUSR1) 
+            print("match over")
+            return
+        time.sleep(2)
+        return
+    else:
+        print("Could not increment score")
+        return
+
+def poll_buttons():
+    p1_button.when_pressed = increment_score_p1
+    p2_button.when_pressed = increment_score_p2
+    pause()
 
 while True: 
+    if not get_match_status():
+        reset_match()
     p1, p2 = read_cards()
     initiate_game(p1, p2)
-    #poll buttons
+    poll_buttons()
+    time.sleep(2)
