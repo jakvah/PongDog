@@ -49,6 +49,10 @@
       </div>
 
 <script>
+        function addZero(i) {
+    if (i < 10) {i = "0" + i}
+    return i;
+    }
     var matchPageHTML;
     setInterval(function()
       { 
@@ -58,13 +62,28 @@
               
               success:function(res)
               {
+                
                 matchPageHTML = "";
                     if (res.ongoing == 1) {
+                        var start_t = new Date(res.start_time + "0"); // Matias fix timestamp!
+                        var now_t = new Date();
                         
-                        matchPageHTML +='<div class="container">';
+                        //console.log("Now:", now_t);
+                        //console.log("Start:", start_t);
+                        var diff = now_t - start_t;
+                        //console.log(Math.floor(diff / 1000));
+                        //console.log("Done");
+                        min = Math.floor(diff / 1000 / 60);
+                        sec = Math.floor(diff / 1000) - (min * 60);
+                        let m = addZero(min);
+                        let s = addZero(sec);
+                        let time = m + ":" + s;
+
+                        matchPageHTML +='<di class="container hero-text">';
                             matchPageHTML +='<div class="row" style="margin-bottom:20px;">';
-                                matchPageHTML += '<div class="text-center">'
-                                matchPageHTML += '<h1 style="text-algin:center;"> Match ongoing</h1>'
+                                matchPageHTML += '<div style="margin: 0 auto;" class="text-center">'
+                                matchPageHTML += '<h1 style="text-algin:center;"> MATCH ONGOING</h1>'
+                                matchPageHTML += '<h4 style="margin-top:3px;text-algin:center;">'+ time +'</h4>'
                                 matchPageHTML += '</div>';                                
                                 
                                 matchPageHTML += '</div>';
@@ -109,11 +128,35 @@
                                             matchPageHTML += '</div>';
                                         matchPageHTML += '</div>';
                                     matchPageHTML += '</div>';
+
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h6 style="margin-top:0px; color:#a4ff96; class="va">Win: ' + '+69' + '<i style = "padding-left:5px;"class="fas fa-caret-up"></i></h6>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h6 style="margin-top:0px; color:#ff7373; class="va">Loss: ' + '-69'+ '<i style = "padding-left:5px;"class="fas fa-caret-down"></i></h6>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h1 style="font-size: 5rem; margin-top:20px; color:#d6ff85; class="va">' + res.player1_score + '</h1>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+
                                 matchPageHTML += '</div>';
 
                                 matchPageHTML +='<div class="col-md-2">';
                                     matchPageHTML += '<div class="text-center">';
-                                        matchPageHTML += '<h3 style="margin-top:10px; class="va">vs</h3>';
+                                        matchPageHTML += '<h1 style="margin-top:10px; class="va">VS</h1>';
                                     matchPageHTML += '</div>';
                                     matchPageHTML += '</div>';
 
@@ -136,7 +179,7 @@
                                     matchPageHTML += '<div class="row">';
                                         matchPageHTML += '<div class=col-md-12>';
                                             matchPageHTML += '<div class="text-center">';
-                                                matchPageHTML += '<h6 style="margin-top:0px; color:#a4ff96; class="va">Win: ' + -'69' + '<i style = "padding-left:5px;"class="fas fa-caret-up"></i></h6>';
+                                                matchPageHTML += '<h6 style="margin-top:0px; color:#a4ff96; class="va">Win: ' + '+69' + '<i style = "padding-left:5px;"class="fas fa-caret-up"></i></h6>';
                                             matchPageHTML += '</div>';
                                         matchPageHTML += '</div>';
                                     matchPageHTML += '</div>';
@@ -144,6 +187,14 @@
                                         matchPageHTML += '<div class=col-md-12>';
                                             matchPageHTML += '<div class="text-center">';
                                                 matchPageHTML += '<h6 style="margin-top:0px; color:#ff7373; class="va">Loss: ' + '-69'+ '<i style = "padding-left:5px;"class="fas fa-caret-down"></i></h6>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h1 style="font-size: 5rem; margin-top:20px; color:#d6ff85; class="va">' + res.player2_score + '</h1>';
                                             matchPageHTML += '</div>';
                                         matchPageHTML += '</div>';
                                     matchPageHTML += '</div>';
@@ -157,7 +208,7 @@
                         
                     }
                     else {
-                        matchPageHTML = "No active match round!"
+                        matchPageHTML += '<div class="hero-text"><h3>No active game found! Tap cards to begin!</h3></div>';
                     }
                   
       
@@ -167,7 +218,7 @@
           $("#lbContent").html(matchPageHTML);
       
       
-      }, 2000);
+      }, 1000);
       
       </script>
 
@@ -204,6 +255,16 @@ body, html {
   background-repeat: no-repeat;
   background-size: cover;
   color: #f3f3f3;
+}
+
+.hero-text {
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.175);
+  
+  color: white;
 }
 </style>
 </body>
