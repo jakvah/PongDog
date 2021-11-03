@@ -43,9 +43,20 @@ def add_pong_dog():
 def leaderboard():
     return render_template("pongdog/leaderboard.html")
 
+@app.route("/pongdog/match_page")
+def match_page():
+    return render_template("pongdog/match_page.html")
+
+@app.route("/dynamic_view")
+def dynamic_view():
+    pass
+
+@app.route("/pongdog/match_page_2")
+
 @app.route("/test")
 def test():
     return render_template("test.html")
+
 
 
 # FROM: https://github.com/hermabe/rfid-card

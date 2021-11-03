@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+    <head>
+     <!-- Required meta tags -->
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+ 
+     <!-- Bootstrap CSS and Font Awesome -->
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+     
+     <!--Moment js javascript (for plotting time on x-axis) MUST BE INCLUDED BEFORE CHART JS-->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+     <!-- Chart.js javascript-->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js"></script>
+    
+     <!-- Logo Icon -->
+     <link rel="icon" href="{{ url_for('static',filename='data_logo.png') }}">
+  
+  </head>
+<body>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <!-- Bootstrap uses slim build of jquery, which does not have ajax. Using ajax from google -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+  
+    <div class="container d-flex justify-content-center" id="lbContent">
+        <!-- Loading circle  -->
+      
+              <div class="container" style="width: 100%; text-align: center;">
+              <div class="loader loader--style2" title="1">
+                  <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                    width="80px" height="80px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve"> 
+                  <path fill="#000" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
+                    <animateTransform attributeType="xml"
+                      attributeName="transform"
+                      type="rotate"
+                      from="0 25 25"
+                      to="360 25 25"
+                      dur="0.6s"
+                      repeatCount="indefinite"/>
+                    </path>
+                  </svg>            
+                </div>
+              </div>
+      </div>
+
+<script>
+    var matchPageHTML;
+    setInterval(function()
+      { 
+          $.ajax({
+              type: "get",
+              url: "https://jakvah.pythonanywhere.com/get_complete_match_stats",
+              
+              success:function(res)
+              {
+                matchPageHTML = "";
+                    if (res.ongoing == 1) {
+                        
+                        matchPageHTML +='<div class="container">';
+                            matchPageHTML +='<div class="row" style="margin-bottom:20px;">';
+                                matchPageHTML += '<div class="text-center">'
+                                matchPageHTML += '<h1 style="text-algin:center;"> Match ongoing</h1>'
+                                matchPageHTML += '</div>';                                
+                                
+                                matchPageHTML += '</div>';
+                               
+                            matchPageHTML +='<div class="row center">';
+                                    matchPageHTML +='<div class="col-md-5">';
+                                        
+                                        matchPageHTML += '<div class="text-center">';
+                                        matchPageHTML += '<img class="rounded-circle" src="https://jakvah.pythonanywhere.com/static/imgs/' + res.player1_id.toString() + '"width="200" height="200">';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+                                
+                                matchPageHTML +='<div class="col-md-2">';
+                                    matchPageHTML += '<div class="text-center">';
+                                        //matchPageHTML += '<h3 class="va">vs</h3>';
+                                        matchPageHTML += '</div>';
+                                    
+                                matchPageHTML += '</div>';
+
+                                matchPageHTML +='<div class="col-md-5">';
+                                    matchPageHTML += '<div class="text-center">';
+                                        matchPageHTML += '<img class="rounded-circle" src="https://jakvah.pythonanywhere.com/static/imgs/' + res.player2_id.toString() + '"width="200" height="200">';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+
+                            matchPageHTML += '</div>';     
+                            
+                            
+                            matchPageHTML +='<div class="row">';
+                                matchPageHTML +='<div class="col-md-5">';
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player1_name + '</h2>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h5 style="margin-top:5px; class="va">Elo: ' + res.player1_elo + '<i style = "padding-left:5px;"class="fas fa-chart-line"></i></h3>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+                                matchPageHTML += '</div>';
+
+                                matchPageHTML +='<div class="col-md-2">';
+                                    matchPageHTML += '<div class="text-center">';
+                                        matchPageHTML += '<h3 style="margin-top:10px; class="va">vs</h3>';
+                                    matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+
+                                matchPageHTML +='<div class="col-md-5">';
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player2_name + '</h2>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h5 style="margin-top:5px; class="va">Elo: ' + res.player2_elo + '<i style = "padding-left:5px;"class="fas fa-chart-line"></i></h5>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+                                    
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h6 style="margin-top:0px; color:#a4ff96; class="va">Win: ' + -'69' + '<i style = "padding-left:5px;"class="fas fa-caret-up"></i></h6>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+                                    matchPageHTML += '<div class="row">';
+                                        matchPageHTML += '<div class=col-md-12>';
+                                            matchPageHTML += '<div class="text-center">';
+                                                matchPageHTML += '<h6 style="margin-top:0px; color:#ff7373; class="va">Loss: ' + '-69'+ '<i style = "padding-left:5px;"class="fas fa-caret-down"></i></h6>';
+                                            matchPageHTML += '</div>';
+                                        matchPageHTML += '</div>';
+                                    matchPageHTML += '</div>';
+
+                                matchPageHTML += '</div>';
+
+                            matchPageHTML += '</div>';
+
+
+                        matchPageHTML += '</div>'; 
+                        
+                    }
+                    else {
+                        matchPageHTML = "No active match round!"
+                    }
+                  
+      
+        
+              }
+          });
+          $("#lbContent").html(matchPageHTML);
+      
+      
+      }, 2000);
+      
+      </script>
+
+<!--Loading circle -->
+<style type="text/css">
+  .loader{
+   margin: 0 0 2em;
+   height: 100px;
+   width: 20%;
+   text-align: center;
+   padding-top: 1em;
+   /*margin: 0 auto 1em;*/
+   display: inline-block;
+   /*vertical-align: top;*/
+ }
+ 
+ /*
+   Set the color of the icon
+ */
+ svg path,
+ svg rect{
+   fill: #6eb8f5;
+ }
+ 
+ </style>
+<style>
+    @import url("https://fonts.googleapis.com/css?family=Red+Hat+Display:400,900&display=swap");
+body, html {
+  height: 100%;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),  url('../static/pongdog_bg.jpg');
+  /*background: #4d257a;*/
+  color: #333;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: #f3f3f3;
+}
+</style>
+</body>
+</html>
