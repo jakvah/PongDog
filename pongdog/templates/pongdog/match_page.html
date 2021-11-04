@@ -54,6 +54,8 @@
     return i;
     }
     var matchPageHTML;
+    var limbo_counter;
+    limbo_counter = 0;
     setInterval(function()
       { 
           $.ajax({
@@ -64,26 +66,41 @@
               {
                 
                 matchPageHTML = "";
-                    if (res.ongoing == 1) {
+                    if (res.ongoing !== 0) {
                         var start_t = new Date(res.start_time + "0"); // Matias fix timestamp!
                         var now_t = new Date();
                         
-                        //console.log("Now:", now_t);
-                        //console.log("Start:", start_t);
                         var diff = now_t - start_t;
-                        //console.log(Math.floor(diff / 1000));
-                        //console.log("Done");
+
                         min = Math.floor(diff / 1000 / 60);
                         sec = Math.floor(diff / 1000) - (min * 60);
                         let m = addZero(min);
                         let s = addZero(sec);
                         let time = m + ":" + s;
-
+                        
+                        var match_header = "";
+                        if (res.ongoing == 1) {
+                            match_header = " MATCH ONGOING"
+                            limbo_counter = 0;
+                        }
+                        else {
+                            match_header = "MATCH OVER"
+                            time = "-:-"
+                            limbo_counter += 1;
+                            console.log(limbo_counter)
+                            if (limbo_counter == 60) {
+                                $.ajax({
+                                type: "get",
+                                url: "https://jakvah.pythonanywhere.com/reset_match_status/pongdg4life",
+              
+                                });
+                            }
+                        }
                         matchPageHTML +='<di class="container hero-text">';
                             matchPageHTML +='<div class="row" style="margin-bottom:20px;">';
-                                matchPageHTML += '<div style="margin: 0 auto;" class="text-center">'
-                                matchPageHTML += '<h1 style="text-algin:center;"> MATCH ONGOING</h1>'
-                                matchPageHTML += '<h4 style="margin-top:3px;text-algin:center;">'+ time +'</h4>'
+                                matchPageHTML += '<div style="margin: 0 auto;" class="text-center">';
+                                matchPageHTML += '<h1 style="text-algin:center;">' + match_header +  '</h1>';
+                                matchPageHTML += '<h4 style="margin-top:3px;text-algin:center;">'+ time +'</h4>';
                                 matchPageHTML += '</div>';                                
                                 
                                 matchPageHTML += '</div>';
@@ -207,7 +224,7 @@
                         matchPageHTML += '</div>'; 
                         
                     }
-                    else {
+                    else if (res.ongoing == 0 || limbo_counter == 10){
                         matchPageHTML += '<div class="hero-text"><h3>No active game found! Tap cards to begin!</h3></div>';
                     }
                   
