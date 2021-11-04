@@ -15,6 +15,9 @@ def get_database_connection():
     except Exception as e:
         #print("Could not establish connection to the database. Is the server running?")
         return f"Failed, {e}"
+
+
+        
 def add_pong_dog_user(card_id,user_name):
     conn = get_database_connection()
     cur = conn.cursor()
@@ -101,6 +104,14 @@ def limbo_match(p1_id,p2_id,p1_score,p2_score,start_time):
         cur.close()
         conn.close()
         update_elo(p1_id,p2_id,p1_score,p2_score)
+
+        if p1_score > p2_score:
+            increment_wins(p1_id)
+        else:
+            increment_wins(p2_id)
+
+        increment_games_played(p1_id)
+        increment_games_played(p2_id)
         return True
     except Exception:
         return False
@@ -126,6 +137,27 @@ def update_elo(p1_id,p2_id,p1_score,p2_score):
     cur.execute(query)
     conn.commit()
 
+    cur.close()
+    conn.close()
+
+def increment_wins(card_id):
+    conn = get_database_connection()
+    cur = conn.cursor()
+
+    query = f"UPDATE pongdog_users SET wins = wins + 1 WHERE cardid = {card_id}"
+
+    cur.execute(query)
+    conn.commit()
+    cur.close()
+    conn.close()
+def increment_games_played(card_id):
+    conn = get_database_connection()
+    cur = conn.cursor()
+
+    query = f"UPDATE pongdog_users SET games_played = games_played + 1 WHERE cardid = {card_id}"
+
+    cur.execute(query)
+    conn.commit()
     cur.close()
     conn.close()
 
@@ -198,6 +230,20 @@ def get_player_elo(id):
 
     return data[3]
 
+def get_total_games():
+    conn = get_database_connection()
+    cur = conn.cursor()
+
+    total = 0
+    query = "SELECT * FROM pongdog_users"
+    cur.execute(query)
+    data = cur.fetchall()
+    for row in data:
+        total += row[5]
+
+    cur.close()
+    conn.close()
+    return total
 
 
 
@@ -246,4 +292,6 @@ def new_scores(p1_ELO,p2_ELO,winner): #winner is 'p1' or 'p2'
         p2_ELO_new = 0
 
     return p1_ELO_new, p2_ELO_new
+
+
 

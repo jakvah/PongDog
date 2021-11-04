@@ -70,6 +70,14 @@ def test():
         s = str(e)
         return s
 
+@app.route("/get_total_games_played")
+def get_total_games_played():
+    total_games = dbm.get_total_games()
+    response = jsonify(total_games)
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+
 
 @app.route("/get_card_status/<card_id>")
 def get_card_status(card_id):
@@ -164,6 +172,9 @@ def get_pongdog_leaderboard():
         score_dict["id"] = row[1]
         score_dict["score"] = row[3]
         score_dict["rank"] = i+1
+        score_dict["games_played"] = row[4]
+        score_dict["wins"] = row[5]
+
         scores_list.append(score_dict)
     obj = {"scores" : scores_list}
     response = jsonify(obj)
@@ -285,7 +296,3 @@ def new_scores(p1_ELO,p2_ELO,winner): #winner is 'p1' or 'p2'
         p2_ELO_new = 0
 
     return p1_ELO_new, p2_ELO_new
-
-
-
-
