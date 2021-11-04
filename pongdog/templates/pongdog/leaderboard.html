@@ -28,16 +28,17 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
   
 
+    
+
+
 <div class="container"> 
   <div class="row" style="margin-top: 20px; margin-bottom: 45px;">
     <div class="col-md-12">
       <div class="progress">
-        <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="70"
-        aria-valuemin="0" aria-valuemax="100" style="width:70%">
-          250 games played
-        </div>
+        <div id ="gamesPlayed"class="progress-bar bg-success" role="progressbar" style="width: 46.0721868365%" aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
+        <div id = "goal" class="progress-bar bg-danger" role="progressbar" style="width: 53.9278131635%" aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
       </div>
-    </div>
+      </div>
   </div>
 </div>
 
@@ -70,6 +71,7 @@
 </body>
 
 <script>
+  const TARGET_GAMES = 100
   var leaderBoardHTML;
   var latestDogHTML;
 setInterval(function()
@@ -86,17 +88,17 @@ setInterval(function()
             leaderBoardHTML += '<div class="two item">';
             leaderBoardHTML += '<div class="pos">' + 2 + '</div><div class="pic" style="background-image: url(&#39;https://jakvah.pythonanywhere.com/static/imgs/' + res["scores"][1].id.toString() + '&#39;)"></div>';
             leaderBoardHTML += '<div class="name">' + res["scores"][1].name + '</div>';
-            leaderBoardHTML += '<div class="score">' + res["scores"][1].score + '<i style = "padding-left:5px;"class="fas fa-chart-line"></i></div></div>';
+            leaderBoardHTML += '<div class="score">' + res["scores"][1].score + '<i style = "padding-left:5px;"class="fas fa-chart-line"></i><br>'+ (res["scores"][1].games_played == 0 ? "0" :(Math.round((res["scores"][1].games_played / res["scores"][1].games_played )*100)).toString()) + '% WR</div></div>';
 
             leaderBoardHTML += '<div class="one item">';
             leaderBoardHTML += '<div class="pos">' + 1 + '</div><div class="pic" style="background-image: url(&#39;https://jakvah.pythonanywhere.com/static/imgs/' + res["scores"][0].id.toString() + '&#39;)"></div>';
             leaderBoardHTML += '<div class="name">' + res["scores"][0].name + '</div>';
-            leaderBoardHTML += '<div class="score">' + res["scores"][0].score + '<i style = "padding-left:5px;"class="fas fa-chart-line"></i></div></div>';
+            leaderBoardHTML += '<div class="score">' + res["scores"][0].score +'<i style = "padding-left:5px;"class="fas fa-chart-line"></i><br>'+ (res["scores"][0].games_played == 0 ? "0" :(Math.round((res["scores"][0].games_played / res["scores"][0].games_played )*100)).toString()) + '% WR</div></div>';
 
             leaderBoardHTML += '<div class="three item">';
             leaderBoardHTML += '<div class="pos">' + 3 + '</div><div class="pic" style="background-image:url(&#39;https://jakvah.pythonanywhere.com/static/imgs/' + res["scores"][2].id.toString() + '&#39;)"></div>';
             leaderBoardHTML += '<div class="name">' + res["scores"][2].name + '</div>';
-            leaderBoardHTML += '<div class="score">' + res["scores"][2].score + '<i style = "padding-left:5px;" class="fas fa-chart-line"></i></div></div>';
+            leaderBoardHTML += '<div class="score">' + res["scores"][2].score + '<i style = "padding-left:5px;"class="fas fa-chart-line"></i><br>'+ (res["scores"][2].games_played == 0 ? "0" :(Math.round((res["scores"][2].games_played / res["scores"][2].games_played )*100)).toString()) + '% WR</div></div>';
             leaderBoardHTML += '</div>'; 
 
             leaderBoardHTML += '<div class="list">';
@@ -110,7 +112,7 @@ setInterval(function()
                 leaderBoardHTML += '<div class="pos">' + value.rank + '</div>';
                 leaderBoardHTML += '<div class="pic" style="background-image: url(&#39;https://jakvah.pythonanywhere.com/static/imgs/' + value.id.toString() + '&#39;)"></div>';
                 leaderBoardHTML += '<div class="name">' + value.name + '</div>';
-                leaderBoardHTML +=  '<div class="score">' + value.score + '</div></div>';        
+                leaderBoardHTML +=  '<div class="score">' + value.score + ' elo // ' + (value.games_played == 0 ? "0" :(Math.round((value.wins / value.games_played )*100)).toString()) + '% WR</div></div>';        
         
         
         
@@ -118,12 +120,28 @@ setInterval(function()
             });
 
             leaderBoardHTML += '</div>';
-            
+            $.ajax({
+              type: "get",
+              url: "https://jakvah.pythonanywhere.com/get_total_games_played",
+              
+              success:function(res) {                 
+                  document.getElementById("gamesPlayed").setAttribute("style",   `width:${(parseInt(res) / TARGET_GAMES) * 100 }%;`);
+                  document.getElementById("goal").setAttribute("style",   `width:${(100 - ((parseInt(res) / TARGET_GAMES) * 100))}%;`);
+                  if (parseInt(res) / TARGET_GAMES > (1 - ((parseInt(res) / TARGET_GAMES)))) {
+                    document.getElementById("gamesPlayed").innerHTML = res + ' games played';
+                  } else {
+                    document.getElementById("goal").innerHTML = res + ' games played';
+                  } 
+                  
+              }
+            });
 
   
         }
     });
     $("#lbContent").html(leaderBoardHTML);
+
+    
 
 
 }, 2000);
@@ -162,6 +180,7 @@ setInterval(function()
 body, html {
   height: 100%;
   background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),  url('../static/pongdog_bg.jpg');
+  background-size: 100% auto;
   /*background: #4d257a;*/
   color: #333;
   background-position: center;
@@ -305,7 +324,7 @@ body, html {
 }
 .list .item .score:after {
   margin-right: 1rem;
-  content: " elo";
+  /*content: " elo";*/
   opacity: 0.8;
 }
 .list .item:hover {
