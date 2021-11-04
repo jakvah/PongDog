@@ -115,9 +115,13 @@ def init_match(p1_id,p2_id,start_time):
 def reset_match_status(pwd):
     if pwd == "pongdg4life":
         dbm.reset_match_status()
-        return "200"
+        res = "200"
     else:
-        return "300"
+        res = "300"
+
+    response = jsonify(res)
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 
 @app.route("/increment_score/<player_num>")
@@ -125,10 +129,26 @@ def increment_score(player_num):
     if not int(player_num) in [1,2]:
         return "300" # Invalid player num (not 1 or 2)
     else:
+        if not dbm.is_match_ongoing():
+            return "300"
         if dbm.increment_score(int(player_num)):
-            return "200" # Success
+            match_row = dbm.get_match_stats()
+            p1_id = match_row[1]
+            p2_id = match_row[2]
+            player1_score = match_row[3]
+            player2_score = match_row[4]
+            start_time = match_row[5]
+            diff = abs(player1_score - player2_score)
+            if (player1_score >= 11 and diff >= 2) or (player2_score >= 11 and diff >= 2):
+                if dbm.limbo_match(p1_id,p2_id,player1_score,player2_score,start_time):
+                    return "300" # Set match in limbo state
+                else:
+                    return "400" # Error
+
+            else:
+                return "200" # Success
         else:
-            return "400"
+            return "400" # Error
 
 
 
@@ -151,6 +171,68 @@ def get_pongdog_leaderboard():
     return response
 
 
+@app.route("/get_complete_match_stats")
+def get_complete_match_stats():
+    match_dict = {}
+    match_row = dbm.get_match_stats()
+    ongoing = match_row[0]
+
+    if ongoing == 0:
+        match_dict["ongoing"] = 0
+        match_dict["start_time"] = "-"
+        match_dict["player1_id"] = -1
+        match_dict["player2_id"] = -1
+
+        match_dict["player1_score"] = -1
+        match_dict["player2_score"] = -1
+
+        match_dict["player1_name"] = -1
+        match_dict["player2_name"] = -1
+
+        match_dict["player1_elo"] = -1
+        match_dict["player2_elo"] = -1
+
+
+        response = jsonify(match_dict)
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
+
+
+    player1_id = match_row[1]
+    player2_id = match_row[2]
+    player1_score = match_row[3]
+    player2_score = match_row[4]
+    start_time = match_row[5]
+
+    player1_name = dbm.get_player_name(player1_id)
+    player2_name = dbm.get_player_name(player2_id)
+    player1_elo = dbm.get_player_elo(player1_id)
+    player2_elo = dbm.get_player_elo(player2_id)
+
+    match_dict["ongoing"] = ongoing
+    match_dict["start_time"] = start_time
+    match_dict["player1_id"] = player1_id
+    match_dict["player2_id"] = player2_id
+
+    match_dict["player1_score"] = player1_score
+    match_dict["player2_score"] = player2_score
+
+    match_dict["player1_name"] = player1_name
+    match_dict["player2_name"] = player2_name
+
+    match_dict["player1_elo_win"] = elo_at_stake(player1_elo,player2_elo)[0]
+    match_dict["player1_elo_loss"] = - (elo_at_stake(player1_elo,player2_elo)[1])
+    match_dict["player2_elo_win"] = elo_at_stake(player1_elo,player2_elo)[1]
+    match_dict["player2_elo_loss"] = - (elo_at_stake(player1_elo,player2_elo)[0])
+
+
+    match_dict["player1_elo"] = player1_elo
+    match_dict["player2_elo"] = player2_elo
+
+    response = jsonify(match_dict)
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
 
 # FROM: https://github.com/hermabe/rfid-card
 # Reverses CARD EM number to RFID number
@@ -159,5 +241,51 @@ def reverseBytes(number):
     byteList = [binary[i:i+8][::-1] for i in range(0, 32, 8)] # Reverse each byte
     return int(''.join(byteList), 2) # Join and convert to decimal
     # return int(''.join(["{0:0>32b}".format(number)[i:i+8][::-1] for i in range(0, 32, 8)]), 2)
+
+
+# ELO
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov  3 18:11:27 2021
+
+@author: mathiasrammhaugland
+"""
+
+def elo_at_stake(p1_ELO,p2_ELO):
+    adv = 1800 #if you have adv more points than your opponent you are 10 times more likely to win
+    k = 50
+
+    pow1 = ((p1_ELO-p2_ELO)/adv)
+    exp_score1 = 1/(1+10**pow1)
+    p1_win = k*exp_score1 #p1_win is what p1 wins and p2 looses
+
+    pow2 = ((p2_ELO-p1_ELO)/adv)
+    exp_score2 = 1/(1+10**pow2)
+    p2_win = k*exp_score2 #p2_win is what p2 wins and p1 looses
+
+    return round(p1_win), round(p2_win)
+
+
+def new_scores(p1_ELO,p2_ELO,winner): #winner is 'p1' or 'p2'
+    p1_win, p2_win = elo_at_stake(p1_ELO, p2_ELO)
+    if winner == 'p1':
+        p1_ELO_new = p1_ELO + p1_win
+        p2_ELO_new = p2_ELO - p1_win
+    elif winner == 'p2':
+        p1_ELO_new = p1_ELO - p2_win
+        p2_ELO_new = p2_ELO + p2_win
+    else:
+        print("Theres a bloody problem here, wankers, arrrrrghhh")
+
+    if p1_ELO_new <= 0:
+        p1_ELO_new = 0
+
+    if p2_ELO_new <=0:
+        p2_ELO_new = 0
+
+    return p1_ELO_new, p2_ELO_new
+
+
 
 
