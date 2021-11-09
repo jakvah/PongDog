@@ -9,17 +9,22 @@ from gpiozero import LED
 from gpiozero import Button 
 import requests
 import datetime
+import pygame
+import pyautogui
 
-p1_led = LED(18)
-p2_led = LED(4)
-p1_button = Button(26)
-p2_button = Button(20)
+pygame.mixer.init()
+pygame.mixer.music.set_volume(1.0)
+
+p1_led = LED(16)
+p2_led = LED(26)
+p1_button = Button(20)
+p2_button = Button(19)
+scrollvar = False
 
 def handleSignal(num, stack):
     return 0
 
 signal.signal(signal.SIGUSR1, handleSignal)
-
 
 
 class Device():
@@ -55,7 +60,7 @@ class Device():
             #print("RFID scanner is ready....")
             #print("Press Control + c to quit.")
             while True:
-                select([device], [], [], 5)
+                select([device], [], [], 20)
                 try:
                     for event in device.read():
                             # enter into an endeless read-loop
@@ -77,6 +82,19 @@ class Device():
             device.ungrab()
             print('Quitting.')
 
+def scroll(): # to go up and down the leaderboard
+    global scrollvar
+    if not scrollvar:
+        scrollvar = True
+        pyautogui.press('end')
+        return
+
+    if scrollvar:
+        scrollvar = False
+        pyautogui.press('home')
+        return
+
+
 def get_timestamp():
     dato = str(datetime.datetime.now())
     date = dato.split(' ')[0]
@@ -93,8 +111,9 @@ def read_cards():
 
         print("Player 1, please scan card")
         player1 = Device.run()
-        #player1 = "128"
+        #player1 = "320822272"
         if player1 == "0":
+            scroll()
             continue # card reader timed out
         print("Player 1, card ID:" + player1)
         p1_led.blink(0.1,0.1,30)
@@ -102,6 +121,9 @@ def read_cards():
             #play_denied()
             continue
         p1_led.on()
+        pygame.mixer.music.play()
+        
+
 
         print("Player 2, please scan card")
         player2 = Device.run()
@@ -123,8 +145,12 @@ def read_cards():
                 #play_denied()
                 continue #start over
             p2_led.on()
+            pygame.mixer.music.play()
+            time.sleep(1)
             break
     print("Two unique cards detected wahoo")
+    pygame.mixer.music.load('/home/pi/gamestart.mp3')
+    pygame.mixer.music.play()
     return player1, player2
     
     # light up lys #2
@@ -193,6 +219,7 @@ def increment_score_p1():
     print("increment score: "+r.text)
     if r.text == "200":
         p1_led.on()
+        pygame.mixer.music.play()
         if get_match_status(): # game is over
             os.kill(os.getpid(), signal.SIGUSR1) #exit pause()
             print("match over")
@@ -200,7 +227,8 @@ def increment_score_p1():
         time.sleep(2)
         return
     else:
-        print("Could not increment score")
+        os.kill(os.getpid(), signal.SIGUSR1) #exit pause()
+        print("Could not increment score/match over")
         return
 
 # as above
@@ -211,6 +239,7 @@ def increment_score_p2():
     print("increment score: "+r.text)
     if r.text == "200":
         p2_led.on()
+        pygame.mixer.music.play()
         if get_match_status(): # game is over
             os.kill(os.getpid(), signal.SIGUSR1) 
             print("match over")
@@ -219,17 +248,31 @@ def increment_score_p2():
         return
     else:
         print("Could not increment score")
+        os.kill(os.getpid(), signal.SIGUSR1) #exit pause()
         return
 
 def poll_buttons():
+    time.sleep(4)
+    pygame.mixer.music.load("/home/pi/coin.mp3")
+    pygame.mixer.music.set_volume(0.15)
     p1_button.when_pressed = increment_score_p1
     p2_button.when_pressed = increment_score_p2
     pause()
+    print("exiting poll_buttons")
+    return
+
+if get_match_status(): # startup check
+    p1_led.blink(0.25,0.25,10)
+    p2_led.blink(0.25,0.25,10)
 
 while True: 
+    pygame.mixer.music.load("/home/pi/startny.mp3")
     if not get_match_status():
         reset_match()
     p1, p2 = read_cards()
     initiate_game(p1, p2)
     poll_buttons()
+    pygame.mixer.music.set_volume(1.0)
+    pygame.mixer.music.load("/home/pi/game.mp3")
+    pygame.mixer.music.play()
     time.sleep(2)
