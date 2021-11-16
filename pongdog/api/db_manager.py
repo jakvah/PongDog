@@ -1,52 +1,119 @@
 import MySQLdb
 
 DATABASE_LOGIN_DETAILS = {
-	"host":"jakvah.mysql.pythonanywhere-services.com",
-	"user":"jakvah",
-	"password":"passord123",
-	"database":"jakvah$coffeedog"
+    "host": "jakvah.mysql.pythonanywhere-services.com",
+    "user": "jakvah",
+    "password": "passord123",
+    "database": "jakvah$coffeedog"
 }
 
+#conn = MySQLdb.connect(DATABASE_LOGIN_DETAILS["host"],DATABASE_LOGIN_DETAILS["user"],DATABASE_LOGIN_DETAILS["password"],DATABASE_LOGIN_DETAILS["database"],use_unicode=True, charset="utf8")
+#cur = conn.cursor()
+
 # Returns a datbase connection object.
+
+
 def get_database_connection():
     try:
-        db_conn = MySQLdb.connect(DATABASE_LOGIN_DETAILS["host"],DATABASE_LOGIN_DETAILS["user"],DATABASE_LOGIN_DETAILS["password"],DATABASE_LOGIN_DETAILS["database"],use_unicode=True, charset="utf8")
+        db_conn = MySQLdb.connect(DATABASE_LOGIN_DETAILS["host"], DATABASE_LOGIN_DETAILS["user"],
+                                  DATABASE_LOGIN_DETAILS["password"], DATABASE_LOGIN_DETAILS["database"], use_unicode=True, charset="utf8")
         return db_conn
     except Exception as e:
         #print("Could not establish connection to the database. Is the server running?")
         return f"Failed, {e}"
 
 
-        
-def add_pong_dog_user(card_id,user_name):
-    conn = get_database_connection()
-    cur = conn.cursor()
-    query = "INSERT INTO pongdog_users (cardid,name,elo,games_played,wins) values (%s,%s,%s,%s,%s)"
-    cur.execute(query,(int(card_id),str(user_name),1000,0,0))
+def insert_new_coffee(conn, cur, id, timestamp, table_name="history"):
+    query = f"INSERT INTO {table_name} (id,timestamp) VALUES (%s,%s)"
+    cur.execute(query, (int(id), str(timestamp)))
     conn.commit()
-    cur.close()
-    conn.close()
 
-def pong_user_exists(id,table_name = "pongdog_users"):
-    conn = get_database_connection()
-    cur = conn.cursor()
+
+def user_exists(conn, cur, id, table_name="user_stats"):
+    query = f"SELECT * FROM {table_name}"
+    cur.execute(query)
+    set = cur.fetchall()
+    for row in set:
+        if int(row[0]) == int(id):
+            return True
+    else:
+        return False
+
+
+def add_new_user_id(conn, cur, id, name, num_coffees=0):
+    query = "INSERT INTO user_stats (id,name,num_coffees) values (%s,%s,%s)"
+    cur.execute(query, (int(id), str(name), int(num_coffees)))
+    conn.commit()
+
+
+def set_user_name(conn, cur, id, new_name):
+    query = f"UPDATE user_stats SET name = {new_name} WHERE id = {id}"
+    cur.execute(query)
+    conn.commit()
+
+
+def update_user_stats(conn, cur, id):
+    if not user_exists(id):
+        add_new_user_id(id, "Unknown user")
+    query = f"UPDATE user_stats SET num_coffees = num_coffees + 1 WHERE id = {id}"
+    cur.execute(query)
+    conn.commit()
+
+
+def get_latest_dogger(conn, cur):
+
+    query = "SELECT * FROM history ORDER BY regid DESC LIMIT 1"
+    cur.execute(query)
+
+    data = cur.fetchall()
+
+    return data[0]
+
+
+def get_user_data(conn, cur, id):
+
+    query = f"SELECT * FROM user_stats WHERE id = {id}"
+    cur.execute(query)
+
+    data = cur.fetchall()[0]
+
+    return data
+
+
+def get_sorted_leaderboard(conn, cur):
+
+    query = "SELECT * FROM user_stats ORDER BY num_coffees DESC"
+
+    cur.execute(query)
+    data = cur.fetchall()
+    return data
+
+# --------------------------------- PONG DOG FUNCTIONS --------------------------------- #
+
+
+def add_pong_dog_user(conn, cur, card_id, user_name):
+
+    query = "INSERT INTO pongdog_users (cardid,name,elo,games_played,wins) values (%s,%s,%s,%s,%s)"
+    cur.execute(query, (int(card_id), str(user_name), 1000, 0, 0))
+    conn.commit()
+
+
+def pong_user_exists(conn, cur, id, table_name="pongdog_users"):
+
     query = f"SELECT * FROM {table_name}"
     cur.execute(query)
     set = cur.fetchall()
     for row in set:
         if int(row[1]) == int(id):
-            cur.close()
-            conn.close()
+
             return True
     else:
-        cur.close()
-        conn.close()
+
         return False
 
 
-def is_match_ongoing():
-    conn = get_database_connection()
-    cur = conn.cursor()
+def is_match_ongoing(conn, cur):
+
     query = "SELECT * FROM active_game"
     cur.execute(query)
     set = cur.fetchall()[0]
@@ -56,79 +123,70 @@ def is_match_ongoing():
         return False
 
 
-def reset_match_status():
-    conn = get_database_connection()
-    cur = conn.cursor()
+def reset_match_status(conn, cur):
+
     query = "delete from active_game"
     cur.execute(query)
     conn.commit()
 
     query = "INSERT INTO active_game (ongoing,player1_id,player2_id,player1_score,player2_score,start_time) values(%s,%s,%s,%s,%s,%s)"
 
-    cur.execute(query,(0,-1,-1,-1,-1,"-"))
+    cur.execute(query, (0, -1, -1, -1, -1, "-"))
     conn.commit()
-    cur.close()
-    conn.close()
 
 
-def init_match(p1_id,p2_id,start_time):
+def init_match(conn, cur, p1_id, p2_id, start_time):
     try:
-        conn = get_database_connection()
-        cur = conn.cursor()
+
         query = "delete from active_game"
         cur.execute(query)
         conn.commit()
 
         query = "INSERT INTO active_game (ongoing,player1_id,player2_id,player1_score,player2_score,start_time) values(%s,%s,%s,%s,%s,%s)"
 
-        cur.execute(query,(1,int(p1_id),int(p2_id),0,0,str(start_time)))
+        cur.execute(query, (1, int(p1_id), int(p2_id), 0, 0, str(start_time)))
         conn.commit()
-        cur.close()
-        conn.close()
         return True
     except Exception:
         return False
 
-def limbo_match(p1_id,p2_id,p1_score,p2_score,start_time):
+
+def limbo_match(conn, cur, p1_id, p2_id, p1_score, p2_score, start_time):
     try:
-        conn = get_database_connection()
-        cur = conn.cursor()
         query = "delete from active_game"
         cur.execute(query)
         conn.commit()
 
         query = "INSERT INTO active_game (ongoing,player1_id,player2_id,player1_score,player2_score,start_time) values(%s,%s,%s,%s,%s,%s)"
 
-        cur.execute(query,(2,int(p1_id),int(p2_id),int(p1_score),int(p2_score),str(start_time)))
+        cur.execute(query, (2, int(p1_id), int(p2_id), int(
+            p1_score), int(p2_score), str(start_time)))
         conn.commit()
-        cur.close()
-        conn.close()
-        update_elo(p1_id,p2_id,p1_score,p2_score)
+        update_elo(conn, cur, p1_id, p2_id, p1_score, p2_score)
 
         if p1_score > p2_score:
-            increment_wins(p1_id)
+            increment_wins(conn, cur, p1_id)
         else:
-            increment_wins(p2_id)
+            increment_wins(conn, cur, p2_id)
 
-        increment_games_played(p1_id)
-        increment_games_played(p2_id)
+        increment_games_played(conn, cur, p1_id)
+        increment_games_played(conn, cur, p2_id)
         return True
     except Exception:
         return False
 
-def update_elo(p1_id,p2_id,p1_score,p2_score):
+
+def update_elo(conn, cur, p1_id, p2_id, p1_score, p2_score):
     if p1_score > p2_score:
         winner = "p1"
     else:
         winner = "p2"
 
-    player1_elo = get_player_elo(p1_id)
-    player2_elo = get_player_elo(p2_id)
+    player1_elo = get_player_elo(conn, cur, p1_id)
+    player2_elo = get_player_elo(conn, cur, p2_id)
 
-    new_player1_elo, new_player2_elo = new_scores(player1_elo,player2_elo,winner)
-
-    conn = get_database_connection()
-    cur = conn.cursor()
+    new_player1_elo, new_player2_elo = new_scores(
+        player1_elo, player2_elo, winner)
 
     query = f"UPDATE pongdog_users SET elo = {new_player1_elo} WHERE cardid = {p1_id}"
     cur.execute(query)
@@ -137,35 +195,25 @@ def update_elo(p1_id,p2_id,p1_score,p2_score):
     cur.execute(query)
     conn.commit()
 
-    cur.close()
-    conn.close()
 
-def increment_wins(card_id):
-    conn = get_database_connection()
-    cur = conn.cursor()
+def increment_wins(conn, cur, card_id):
 
     query = f"UPDATE pongdog_users SET wins = wins + 1 WHERE cardid = {card_id}"
 
     cur.execute(query)
     conn.commit()
-    cur.close()
-    conn.close()
-def increment_games_played(card_id):
-    conn = get_database_connection()
-    cur = conn.cursor()
+
+
+def increment_games_played(conn, cur, card_id):
 
     query = f"UPDATE pongdog_users SET games_played = games_played + 1 WHERE cardid = {card_id}"
 
     cur.execute(query)
     conn.commit()
-    cur.close()
-    conn.close()
 
 
-def increment_score(player_num):
+def increment_score(conn, cur, player_num):
     try:
-        conn = get_database_connection()
-        cur = conn.cursor()
 
         if player_num == 1:
             query = "UPDATE active_game SET player1_score = player1_score + 1 WHERE ongoing = 1"
@@ -174,65 +222,59 @@ def increment_score(player_num):
 
         cur.execute(query)
         conn.commit()
-        cur.close()
-        conn.close()
+
         return True
     except Exception:
         return False
 
 
-def get_sorted_pongdog_leaderboard():
-    conn = get_database_connection()
-    cur = conn.cursor()
-    query = "SELECT * FROM pongdog_users ORDER BY elo DESC"
+def get_sorted_pongdog_leaderboard(conn, cur):
+
+    query = "SELECT * FROM pongdog_users where games_played > 2 ORDER BY elo DESC"
 
     cur.execute(query)
     data = cur.fetchall()
-    cur.close()
-    conn.close()
+
     return data
 
 
+def get_match_stats(conn, cur):
 
-def get_match_stats():
-    conn = get_database_connection()
-    cur = conn.cursor()
     query = "SELECT * FROM active_game"
     cur.execute(query)
     set = cur.fetchall()[0]
 
-    cur.close()
-    conn.close()
     return set
 
-def get_player_name(id):
-    conn = get_database_connection()
-    cur = conn.cursor()
+
+def get_player_name(conn, cur, id):
 
     query = f"SELECT * FROM pongdog_users WHERE cardid = {id}"
     cur.execute(query)
     data = cur.fetchall()[0]
 
-    cur.close()
-    conn.close()
     return data[2]
 
-def get_player_elo(id):
-    conn = get_database_connection()
-    cur = conn.cursor()
+
+def get_player_elo(conn, cur, id):
 
     query = f"SELECT * FROM pongdog_users WHERE cardid = {id}"
     cur.execute(query)
     data = cur.fetchall()[0]
-
-    cur.close()
-    conn.close()
 
     return data[3]
 
-def get_total_games():
-    conn = get_database_connection()
-    cur = conn.cursor()
+
+def get_number_of_players(conn, cur):
+
+    query = "select * from pongdog_users"
+    cur.execute(query)
+    data = cur.fetchall()
+
+    return len(data)
+
+
+def get_total_games(conn, cur):
 
     total = 0
     query = "SELECT * FROM pongdog_users"
@@ -241,15 +283,10 @@ def get_total_games():
     for row in data:
         total += row[5]
 
-    cur.close()
-    conn.close()
     return total
 
 
-
-
 # ------------------------- ELO ----------------------------#
-
 # ELO
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
@@ -259,22 +296,23 @@ Created on Wed Nov  3 18:11:27 2021
 @author: mathiasrammhaugland
 """
 
-def elo_at_stake(p1_ELO,p2_ELO):
-    adv = 1800 #if you have adv more points than your opponent you are 10 times more likely to win
+
+def elo_at_stake(p1_ELO, p2_ELO):
+    adv = 1800  # if you have adv more points than your opponent you are 10 times more likely to win
     k = 50
 
     pow1 = ((p1_ELO-p2_ELO)/adv)
     exp_score1 = 1/(1+10**pow1)
-    p1_win = k*exp_score1 #p1_win is what p1 wins and p2 looses
+    p1_win = k*exp_score1  # p1_win is what p1 wins and p2 looses
 
     pow2 = ((p2_ELO-p1_ELO)/adv)
     exp_score2 = 1/(1+10**pow2)
-    p2_win = k*exp_score2 #p2_win is what p2 wins and p1 looses
+    p2_win = k*exp_score2  # p2_win is what p2 wins and p1 looses
 
     return round(p1_win), round(p2_win)
 
 
-def new_scores(p1_ELO,p2_ELO,winner): #winner is 'p1' or 'p2'
+def new_scores(p1_ELO, p2_ELO, winner):  # winner is 'p1' or 'p2'
     p1_win, p2_win = elo_at_stake(p1_ELO, p2_ELO)
     if winner == 'p1':
         p1_ELO_new = p1_ELO + p1_win
@@ -288,10 +326,12 @@ def new_scores(p1_ELO,p2_ELO,winner): #winner is 'p1' or 'p2'
     if p1_ELO_new <= 0:
         p1_ELO_new = 0
 
-    if p2_ELO_new <=0:
+    if p2_ELO_new <= 0:
         p2_ELO_new = 0
 
     return p1_ELO_new, p2_ELO_new
 
 
-
+if __name__ == "__main__":
+    p = get_sorted_pongdog_leaderboard()
+    print(p)
