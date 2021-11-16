@@ -3,7 +3,7 @@ import { FaFirstAid } from "react-icons/fa";
 import { ImSpinner } from "react-icons/im";
 import { VscGraphLine } from "react-icons/vsc";
 
-import { useInterval } from "../hooks";
+import { useInterval, useProfileImage } from "../hooks";
 
 const FETCH_INTERVAL_MS = 30 * 1000;
 
@@ -31,22 +31,7 @@ const PodiumCard: React.FC<{ player: Player; rank: 1 | 2 | 3 }> = ({
     }
   }, [rank]);
 
-  const [imgUrl, setImgUrl] = useState("");
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch(
-        `https://jakvah.pythonanywhere.com/static/imgs/${player.id}`,
-        { mode: "no-cors" }
-      );
-      console.log(response);
-      if (!response.ok) {
-        setImgUrl("https://jakvah.pythonanywhere.com/static/placeholder.png");
-      }
-      setImgUrl(`https://jakvah.pythonanywhere.com/static/imgs/${player.id}`);
-    };
-    fetchData();
-  }, [player.id]);
+  const imgUrl = useProfileImage(player.id);
 
   return (
     <div className={"podium__card podium__card--" + rankText}>
@@ -60,7 +45,7 @@ const PodiumCard: React.FC<{ player: Player; rank: 1 | 2 | 3 }> = ({
         <div>
           {player.score} <VscGraphLine />
         </div>
-        <div>{Math.round(player.wins / player.games_played) * 100}% WR</div>
+        <div>{Math.round((player.wins / player.games_played) * 100)}% WR</div>
       </div>
     </div>
   );

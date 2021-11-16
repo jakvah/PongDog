@@ -31,6 +31,28 @@ def hello_world():
     return "CoffeeDog says sniff sniff"
 
 
+@app.route('/logdog/rooms', methods=["GET"])
+def rooms():
+    CONN = get_conn()
+    CUR = CONN.cursor()
+    rooms = dbm.get_rooms(CONN, CUR)
+    response = jsonify({"data": rooms})
+
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+
+@app.route("/logdog/rooms/<id>", methods=["GET"])
+def room(id):
+    CONN = get_conn()
+    CUR = CONN.cursor()
+    room = dbm.get_room(CONN, CUR, id)
+    response = jsonify({"data": room})
+
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+
 @app.route("/add_coffee/<id>/<timestamp>", methods=["POST"])
 def add_coffee(id, timestamp):
     CONN = get_conn()

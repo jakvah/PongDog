@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 export function useInterval(callback: Function, delay: number) {
 	const savedCallback = useRef<Function | null>(null);
@@ -19,4 +19,10 @@ export function useInterval(callback: Function, delay: number) {
 			return () => clearInterval(id);
 		}
 	}, [delay]);
+}
+
+export function useProfileImage(userId: number) {
+	const IMG_URL = `https://jakvah.pythonanywhere.com/static/imgs/${userId}`
+	
+	return IMG_URL
 }

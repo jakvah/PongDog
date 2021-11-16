@@ -23,6 +23,28 @@ def get_database_connection():
         return f"Failed, {e}"
 
 
+def get_rooms(conn, cur):
+    query = "SELECT id, name FROM logdog_rooms"
+    cur.execute(query)
+    response = cur.fetchall()
+    ret = []
+    for row in response:
+        ret.append({"id": row[0], "name": row[1]})
+    return ret
+
+
+def get_room(conn, cur, id):
+    query = f"SELECT room.id AS roomId, room.name AS roomName, user.id AS userId, user.name AS userName, user.lastSeenAt AS lastSeenAt FROM logdog_rooms room LEFT JOIN logdog_users user ON user.primaryRoomId = room.id WHERE room.id = %s"
+    cur.execute(query, (int(id),))
+    response = cur.fetchall()
+    ret = {"id": response[0][0], "name": response[0][1], "users": []}
+    for row in response:
+        if type(row[2]) == int:
+            ret["users"].append(
+                {"id": row[2], "name": row[3], "lastSeenAt": row[4]})
+    return ret
+
+
 def insert_new_coffee(conn, cur, id, timestamp, table_name="history"):
     query = f"INSERT INTO {table_name} (id,timestamp) VALUES (%s,%s)"
     cur.execute(query, (int(id), str(timestamp)))
