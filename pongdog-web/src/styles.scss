@@ -275,6 +275,8 @@
   &__content {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 2em;
   }
 }
@@ -283,7 +285,7 @@
   background: var(--clr-white);
   border-radius: 1.3em;
   padding: 1em;
-  width: 30ch;
+  width: 26ch;
   font-size: 1.2rem;
 
   &__header {

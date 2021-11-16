@@ -42,5 +42,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "javascript-time-ago": "^2.3.10",
+    "react-time-ago": "^7.1.3"
   }
 }
