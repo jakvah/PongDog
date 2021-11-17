@@ -1,5 +1,6 @@
 :root {
   --clr-white: #fff;
+  --clr-dark-grey: #999;
   --clr-grey: #ccc;
   --clr-black: #000;
   --clr-purple: #4b4168;
@@ -263,20 +264,23 @@
 
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 2em;
 
   &__header {
     color: var(--clr-white);
     font-weight: bold;
     font-size: 5rem;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
   }
 
   &__content {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 2em;
   }
 }
@@ -310,6 +314,82 @@
         margin-left: auto;
       }
     }
+  }
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &__content {
+    padding: 2rem 2rem;
+    width: 600px;
+    min-height: 200px;
+
+    box-shadow: var(--shadow-default);
+    border-radius: 1.5rem;
+    background: var(--clr-white);
+  }
+}
+
+.button {
+  all: unset;
+  font-size: 1.2rem;
+  color: var(--clr-white);
+  border: 3px solid var(--clr-white);
+  padding: 0.5em 1em;
+
+  &:hover {
+    color: var(--clr-black);
+    background: var(--clr-white);
+  }
+}
+
+input,
+select,
+.device {
+  all: unset;
+  width: 36ch;
+  padding: 0.5em;
+  margin-bottom: 1.2em;
+  border: 1px solid var(--clr-black);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.2rem;
+
+  &__submit {
+    all: unset;
+    padding: 0.6rem;
+    border: 1px solid var(--clr-black);
+    width: 8ch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  label {
+    margin-bottom: 0.5em;
+  }
+
+  & select {
+    background-image: linear-gradient(45deg, transparent 50%, gray 50%),
+      linear-gradient(135deg, gray 50%, transparent 50%);
+    background-position: calc(100% - 20px) calc(1em + 2px),
+      calc(100% - 15px) calc(1em + 2px), calc(100% - 0.5em) 0.5em;
+    background-size: 5px 5px, 5px 5px, 1.5em 1.5em;
+    background-repeat: no-repeat;
   }
 }
 
