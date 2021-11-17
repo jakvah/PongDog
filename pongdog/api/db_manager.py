@@ -45,6 +45,22 @@ def get_room(conn, cur, id):
     return ret
 
 
+def get_devices(conn, cur):
+    query = f"SELECT id, userId, macAddress FROM logdog_devices"
+    cur.execute(query)
+    response = cur.fetchall()
+    ret = []
+    for row in response:
+        ret.append({"id": row[0], "userId": row[1], "macAddress": row[2]})
+    return ret
+
+
+def register_visit(conn, cur, user_id):
+    query = f"UPDATE logdog_users SET lastSeenAt = CURRENT_TIMESTAMP WHERE id = %s"
+    cur.execute(query, (int(user_id),))
+    conn.commit()
+
+
 def insert_new_coffee(conn, cur, id, timestamp, table_name="history"):
     query = f"INSERT INTO {table_name} (id,timestamp) VALUES (%s,%s)"
     cur.execute(query, (int(id), str(timestamp)))

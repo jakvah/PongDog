@@ -53,6 +53,25 @@ def room(id):
     return response
 
 
+@app.route("/logdog/devices", methods=["GET"])
+def devices():
+    CONN = get_conn()
+    CUR = CONN.cursor()
+    devices = dbm.get_devices(CONN, CUR)
+    response = jsonify({"data": devices})
+
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+
+@app.route("/logdog/register_visit/<user_id>", methods=["POST"])
+def register_visit(user_id):
+    CONN = get_conn()
+    CUR = CONN.cursor()
+    dbm.register_visit(CONN, CUR, user_id)
+    return "200"
+
+
 @app.route("/add_coffee/<id>/<timestamp>", methods=["POST"])
 def add_coffee(id, timestamp):
     CONN = get_conn()
