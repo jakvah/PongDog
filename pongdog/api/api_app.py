@@ -64,12 +64,40 @@ def devices():
     return response
 
 
+LOGDOG_PASSWORD = ""
+
+
 @app.route("/logdog/register_visit/<user_id>", methods=["POST"])
 def register_visit(user_id):
+    password = request.headers.get('Authorization')
+
     CONN = get_conn()
     CUR = CONN.cursor()
     dbm.register_visit(CONN, CUR, user_id)
     return "200"
+
+
+@app.route("/logdog/register_visits", methods=["POST"])
+def register_visits():
+    CONN = get_conn()
+    CUR = CONN.cursor()
+
+    if not request.json or "userIds" not in request.json:
+        return "400"
+    for user_id in request.json["userIds"]:
+        dbm.register_visit(CONN, CUR, user_id)
+    return "200"
+
+
+@app.route("/logdog/register_user", methods=["POST"])
+def register_logdog_user():
+    CONN = get_conn()
+    CUR = CONN.cursor()
+    dbm.register_logdog_user(CONN, CUR, request.json)
+
+    response = jsonify({"data": "200"})
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 
 @app.route("/add_coffee/<id>/<timestamp>", methods=["POST"])

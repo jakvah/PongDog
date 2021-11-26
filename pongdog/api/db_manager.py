@@ -46,18 +46,35 @@ def get_room(conn, cur, id):
 
 
 def get_devices(conn, cur):
-    query = f"SELECT id, userId, macAddress FROM logdog_devices"
+    query = f"SELECT d.id, d.userId, d.macAddress, DATE_FORMAT( CONVERT_TZ(u.lastSeenAt, @@session.time_zone, '+00:00')  ,'%Y-%m-%dT%TZ') FROM logdog_devices d LEFT JOIN logdog_users u ON d.userId = u.id"
     cur.execute(query)
     response = cur.fetchall()
     ret = []
     for row in response:
-        ret.append({"id": row[0], "userId": row[1], "macAddress": row[2]})
+        ret.append({"id": row[0], "userId": row[1],
+                    "macAddress": row[2], "lastSeenAt": row[3]})
     return ret
 
 
 def register_visit(conn, cur, user_id):
     query = f"UPDATE logdog_users SET lastSeenAt = CURRENT_TIMESTAMP WHERE id = %s"
     cur.execute(query, (int(user_id),))
+    conn.commit()
+
+
+def register_logdog_user(conn, cur, body):
+    # Register user
+    query_user = f"INSERT INTO logdog_users (name, primaryRoomId) VALUES (%s, %s)"
+    cur.execute(query_user, (body["name"], body["roomId"]))
+
+    user_id = cur.lastrowid
+
+    # Register devices
+    query_device = f"INSERT INTO logdog_devices (userId, name, macAddress) VALUES(%s, %s, %s)"
+    for device in body["devices"]:
+        cur.execute(
+            query_device, (user_id, device["name"], device["macAddress"]))
+
     conn.commit()
 
 
