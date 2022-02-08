@@ -1,3 +1,4 @@
+
 import os
 import evdev
 from evdev import categorize, ecodes
@@ -9,17 +10,13 @@ from gpiozero import LED
 from gpiozero import Button 
 import requests
 import datetime
-import pygame
-import pyautogui
 
-pygame.mixer.init()
-pygame.mixer.music.set_volume(1.0)
+from utils import sound
 
 p1_led = LED(16)
 p2_led = LED(26)
 p1_button = Button(20)
 p2_button = Button(19)
-scrollvar = False
 
 def handleSignal(num, stack):
     return 0
@@ -82,18 +79,6 @@ class Device():
             device.ungrab()
             print('Quitting.')
 
-def scroll(): # to go up and down the leaderboard
-    global scrollvar
-    if not scrollvar:
-        scrollvar = True
-        pyautogui.press('end')
-        return
-
-    if scrollvar:
-        scrollvar = False
-        pyautogui.press('home')
-        return
-
 
 def get_timestamp():
     dato = str(datetime.datetime.now())
@@ -108,12 +93,12 @@ def read_cards():
     while True:
         p1_led.off()
         p2_led.off()
-
+        p1_led.blink(1,1,20)
+        p2_led.blink(1,1,20)
         print("Player 1, please scan card")
         player1 = Device.run()
         #player1 = "320822272"
         if player1 == "0":
-            scroll()
             continue # card reader timed out
         print("Player 1, card ID:" + player1)
         p1_led.blink(0.1,0.1,30)
@@ -121,8 +106,7 @@ def read_cards():
             #play_denied()
             continue
         p1_led.on()
-        pygame.mixer.music.play()
-        
+        sound.playerregistered.play()
 
 
         print("Player 2, please scan card")
@@ -145,15 +129,17 @@ def read_cards():
                 #play_denied()
                 continue #start over
             p2_led.on()
-            pygame.mixer.music.play()
-            time.sleep(1)
+            sound.playerregistered.play()
             break
     print("Two unique cards detected wahoo")
-    pygame.mixer.music.load('/home/pi/gamestart.mp3')
-    pygame.mixer.music.play()
     return player1, player2
     
     # light up lys #2
+
+def check_if_kings_are_playing(p1, p2):
+    if ((p1 == "0320822272" or p1 == "0317094323") and (p2 == "0317094323" or "0320822272")):
+        print("Kongene spiller!")
+        sound.bomben_synger()
 
 #checks if user registered on PongDog. Returns True if card is registered, false if not or error occurs.
 def check_card(card_id):
@@ -218,8 +204,8 @@ def increment_score_p1():
     r = requests.get(url)
     print("increment score: "+r.text)
     if r.text == "200":
+        sound.play_score_sound()
         p1_led.on()
-        pygame.mixer.music.play()
         if get_match_status(): # game is over
             os.kill(os.getpid(), signal.SIGUSR1) #exit pause()
             print("match over")
@@ -238,8 +224,8 @@ def increment_score_p2():
     r = requests.get(url)
     print("increment score: "+r.text)
     if r.text == "200":
+        sound.play_score_sound()
         p2_led.on()
-        pygame.mixer.music.play()
         if get_match_status(): # game is over
             os.kill(os.getpid(), signal.SIGUSR1) 
             print("match over")
@@ -253,8 +239,6 @@ def increment_score_p2():
 
 def poll_buttons():
     time.sleep(4)
-    pygame.mixer.music.load("/home/pi/coin.mp3")
-    pygame.mixer.music.set_volume(0.15)
     p1_button.when_pressed = increment_score_p1
     p2_button.when_pressed = increment_score_p2
     pause()
@@ -264,15 +248,16 @@ def poll_buttons():
 if get_match_status(): # startup check
     p1_led.blink(0.25,0.25,10)
     p2_led.blink(0.25,0.25,10)
+    sound.play_nice()
 
 while True: 
-    pygame.mixer.music.load("/home/pi/startny.mp3")
     if not get_match_status():
         reset_match()
     p1, p2 = read_cards()
     initiate_game(p1, p2)
+    check_if_kings_are_playing(p1, p2)
+    sound.play_game_start()
     poll_buttons()
-    pygame.mixer.music.set_volume(1.0)
-    pygame.mixer.music.load("/home/pi/game.mp3")
-    pygame.mixer.music.play()
+    sound.bomben_holder_kjeft()
+    sound.play_game_over()
     time.sleep(2)
