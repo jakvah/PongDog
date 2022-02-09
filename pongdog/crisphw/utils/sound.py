@@ -1,7 +1,6 @@
-import pygame,random, time
+import pygame,random
 
 print("Initializing sound mixer")
-random.seed()
 pygame.mixer.init()
 assert(pygame.mixer.get_init())
 nice = pygame.mixer.Sound(file="sound/nice.mp3")
