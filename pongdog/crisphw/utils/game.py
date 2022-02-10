@@ -33,9 +33,11 @@ def start_game(p1, p2):
         delta_time = round((current_time - start_time))
         if abs(player1.score-player2.score) >= 2 and (player1.score >= 11 or player2.score >= 11): # Game is won by normal means
             print("game over!")
+            #send winners to database
             return
         if delta_time > GAME_TIMEOUT: # Game times out
             print("game timed out!")
+            #return, do nothing
             return
         
         print("Round:" + str(player1.score + player2.score + 1))
