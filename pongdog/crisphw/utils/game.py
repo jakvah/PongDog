@@ -27,16 +27,24 @@ def start_game(p1, p2):
     screen = pygame.display.set_mode((1920,1080),flags)
     pygame.display.set_caption("PongDog")
 
-    # ------- Text
-    font = pygame.font.Font('freesansbold.ttf', 32)
-
+    # ------- Text and resources
+    font = pygame.font.Font('freesansbold.ttf', 64)
+    serveIndicator = pygame.image.load('utils/icons/serve.png')
+    serveIndicator = pygame.transform.scale(serveIndicator,(100,100))
     # ------- Game functions
     def show_score(x,y,score):
         score = font.render("Score: " + str(score), True, (0,0,0))
         screen.blit(score, (x, y))
 
-    def draw_circle(x,y):
-        circle = pygame.draw.circle(screen, (126,126,126),(x,y),200)
+    def draw_circle(x,y, radius):
+        circle = pygame.draw.circle(screen, (126,126,126),(x,y),radius)
+
+    def draw_serve_indicator(p1_server):
+        if p1_server:
+            screen.blit(serveIndicator,(500-20,200))
+        else:
+            screen.blit(serveIndicator,(1400-20,200))
+        
 
     # ------ Serve
     if random.randint(0,1) == 1:
@@ -48,7 +56,6 @@ def start_game(p1, p2):
     
     while True: #main game loop
         screen.fill((255,255,255))
-
 
         current_time = time.time()
         delta_time = round((current_time - start_time))
@@ -80,6 +87,13 @@ def start_game(p1, p2):
             if player2.server:
                 print("P2 is now serving")
 
+         # ------- Update score, draw objects
+        draw_circle(500,500,200)
+        draw_circle(1420,500,200)
+        show_score(500-120,700,player1.score)
+        show_score(1920-500-120,700,player2.score)
+        draw_serve_indicator(player1.server)
+
         # if button_player1(ispressed):
             #player2.increment_score
             #roundcounter = roundcounter + 1
@@ -101,12 +115,11 @@ def start_game(p1, p2):
         print("p1 score:" +  str(player1.score))
         print("p2 score:" +  str(player2.score))
         print("------")
-        # ------- Update score, draw objects
-        show_score(0,50,player1.score)
-        show_score(650,50,player2.score)
-        draw_circle(500,500)
+
+        
+        # -- update screen
         pygame.display.update()
-        time.sleep(1)
+        time.sleep(0.6)
 
 
 def pygame_test():
