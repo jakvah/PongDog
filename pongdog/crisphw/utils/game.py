@@ -29,21 +29,32 @@ def start_game(p1, p2):
 
     # ------- Text and resources
     font = pygame.font.Font('freesansbold.ttf', 64)
-    serveIndicator = pygame.image.load('utils/icons/serve.png')
+    serveIndicator = pygame.image.load('images/serve.png')
     serveIndicator = pygame.transform.scale(serveIndicator,(100,100))
+    bg = pygame.image.load('images/bg2.jpg')
+    bg = pygame.transform.scale(bg, (1920,1080))
     # ------- Game functions
     def show_score(x,y,score):
         score = font.render("Score: " + str(score), True, (0,0,0))
         screen.blit(score, (x, y))
+    
+    def draw_timer(timevalue):
+        formattedtime = time.strftime('%M:%S', time.gmtime(timevalue))
+        timestamp = font.render(formattedtime, True, (57, 71, 54))
+        screen.blit(timestamp, (1920/2-100,100))
 
-    def draw_circle(x,y, radius):
-        circle = pygame.draw.circle(screen, (126,126,126),(x,y),radius)
+    def draw_circle(x,y, radius,color):
+        circle = pygame.draw.circle(screen, color,(x,y),radius)
 
     def draw_serve_indicator(p1_server):
         if p1_server:
             screen.blit(serveIndicator,(500-20,200))
         else:
             screen.blit(serveIndicator,(1400-20,200))
+
+    def draw_background():
+        screen.blit(bg,(0,0))
+
         
 
     # ------ Serve
@@ -56,9 +67,11 @@ def start_game(p1, p2):
     
     while True: #main game loop
         screen.fill((255,255,255))
-
+        draw_background()
         current_time = time.time()
         delta_time = round((current_time - start_time))
+        draw_circle(1920/2-15,130,100,(200,200,200))
+        draw_timer(delta_time)
         if abs(player1.score-player2.score) >= 2 and (player1.score >= 11 or player2.score >= 11): # Game is won by normal means
             print("game over!")
             #send winners to database
@@ -88,8 +101,8 @@ def start_game(p1, p2):
                 print("P2 is now serving")
 
          # ------- Update score, draw objects
-        draw_circle(500,500,200)
-        draw_circle(1420,500,200)
+        draw_circle(500,500,200,(52, 225, 235))
+        draw_circle(1420,500,200,(52, 225, 235))
         show_score(500-120,700,player1.score)
         show_score(1920-500-120,700,player2.score)
         draw_serve_indicator(player1.server)
@@ -119,7 +132,7 @@ def start_game(p1, p2):
         
         # -- update screen
         pygame.display.update()
-        time.sleep(0.6)
+        time.sleep(0.1)
 
 
 def pygame_test():
