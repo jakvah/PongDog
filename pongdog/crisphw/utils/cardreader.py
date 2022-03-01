@@ -54,7 +54,7 @@ class Cardreader():
                                 if digit == 'KEY_ENTER':
                                     # create and dump the tag
                                     tag = "".join(i.strip('KEY_') for i in container)
-                                    return tag
+                                    return reverseBytes(int(tag))
                                     print(tag)
                                     container = []
                                 else:
