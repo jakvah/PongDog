@@ -132,7 +132,7 @@ def start_game(p1, p2):
         
         # -- update screen
         pygame.display.update()
-        time.sleep(0.1)
+        time.sleep(0.4)
 
 
 def pygame_test():
