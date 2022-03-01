@@ -2,6 +2,16 @@ import evdev
 from evdev import categorize, ecodes
 from select import select
 
+
+
+# FROM: https://github.com/hermabe/rfid-card
+# Reverses CARD EM number to RFID number
+def reverseBytes(number):
+    binary = "{0:0>32b}".format(number) # Zero-padded 32-bit binary
+    byteList = [binary[i:i+8][::-1] for i in range(0, 32, 8)] # Reverse each byte
+    return int(''.join(byteList), 2) # Join and convert to decimal
+
+
 class Cardreader():
     name = 'Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader'
 
@@ -56,3 +66,4 @@ class Cardreader():
             # catch all exceptions to be able release the device
             device.ungrab()
             print('Quitting.')
+
