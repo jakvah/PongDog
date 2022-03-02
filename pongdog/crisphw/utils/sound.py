@@ -3,12 +3,12 @@ import pygame,random
 print("Initializing sound mixer")
 pygame.mixer.init()
 assert(pygame.mixer.get_init())
-nice = pygame.mixer.Sound(file="sound/nice.mp3")
-boom = pygame.mixer.Sound(file="sound/boom.mp3")
-coin = pygame.mixer.Sound(file="sound/coin.mp3")
-game = pygame.mixer.Sound(file="sound/game.mp3")
-playerregistered = pygame.mixer.Sound(file="sound/playerregistered.mp3")
-gamestart = pygame.mixer.Sound(file="sound/gamestart.mp3")
+nice = pygame.mixer.Sound(file="sound/nice.ogg")
+boom = pygame.mixer.Sound(file="sound/boom.ogg")
+coin = pygame.mixer.Sound(file="sound/coin.ogg")
+game = pygame.mixer.Sound(file="sound/game.ogg")
+playerregistered = pygame.mixer.Sound(file="sound/playerregistered.ogg")
+gamestart = pygame.mixer.Sound(file="sound/gamestart.ogg")
 coin.set_volume(0.3)
 
 # Plays "boom" or mario coin when you take a point
