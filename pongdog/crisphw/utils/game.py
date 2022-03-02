@@ -1,5 +1,12 @@
 import math, time, random, pygame
 from utils import sound
+from gpiozero import Button, LED
+
+p1_led = LED(26)
+p2_led = LED(16)
+p1_button = Button(19)
+p2_button = Button(20)
+
 
 GAME_TIMEOUT = 600 #Game automatically stops after 600 seconds // 10 minutes
 
@@ -55,6 +62,17 @@ def start_game(p1, p2):
     def draw_background():
         screen.blit(bg,(0,0))
 
+    def increment_score_p1():
+        sound.play_score_sound()
+        player1.increment_score
+        roundcounter = roundcounter + 1
+        time.sleep(0.5)
+
+    def increment_score_p2():
+        sound.play_score_sound()
+        player2.increment_score
+        roundcounter = roundcounter + 1
+        time.sleep(0.5)
         
 
     # ------ Serve
@@ -107,6 +125,9 @@ def start_game(p1, p2):
         show_score(1920-500-120,700,player2.score)
         draw_serve_indicator(player1.server)
 
+
+        p1_button.when_pressed = increment_score_p1
+        p2_button.when_pressed = increment_score_p2
         # if button_player1(ispressed):
             #player2.increment_score
             #roundcounter = roundcounter + 1
@@ -115,16 +136,6 @@ def start_game(p1, p2):
             #player2.increment_score()
             #round_counter = round_counter +1
 
-        if random.randint(0,1) == 1:
-            print("P1 scores!")
-            player1.increment_score()
-            sound.play_score_sound()
-            
-        else:
-            print("P2 scores!")
-            player2.increment_score()
-            sound.play_score_sound()
-
         print("p1 score:" +  str(player1.score))
         print("p2 score:" +  str(player2.score))
         print("------")
@@ -132,7 +143,6 @@ def start_game(p1, p2):
         
         # -- update screen
         pygame.display.update()
-        time.sleep(0.4)
 
 
 def pygame_test():
