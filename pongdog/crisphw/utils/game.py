@@ -129,7 +129,7 @@ def start_game(p1, p2):
         if abs(player1.score-player2.score) >= 2 and (player1.score >= 11 or player2.score >= 11): # Game is won by normal means
             print("game over!")
             sound.play_game_over()
-            time.sleep(1)
+            time.sleep(5)
             #send winners to database
             return
         if delta_time > GAME_TIMEOUT: # Game times out
@@ -156,7 +156,7 @@ def pygame_test():
     pygame.init()
     screen = pygame.display.set_mode((800,600))
     pygame.display.set_caption("PongDog")
-    font = pygame.font.Font('freesansbold.ttf', 64)
+    font = pygame.font.Font('RobotoSlab-Bold.ttf', 64)
 
     def show_score(x,y):
         score = font.render("Score: " + str(20), True, (0,0,0))
