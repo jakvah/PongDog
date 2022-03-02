@@ -31,7 +31,9 @@ def start_game(p1, p2):
     # ------- Window settings
     pygame.init()
     flags = pygame.FULLSCREEN
-    screen = pygame.display.set_mode((1920,1080),flags)
+    width = 1920   
+    height = 1080
+    screen = pygame.display.set_mode((0,0), flags)
     pygame.display.set_caption("PongDog")
 
     # ------- Text and resources
@@ -39,7 +41,7 @@ def start_game(p1, p2):
     serveIndicator = pygame.image.load('images/serve.png')
     serveIndicator = pygame.transform.scale(serveIndicator,(100,100))
     bg = pygame.image.load('images/bg2.jpg')
-    bg = pygame.transform.scale(bg, (1920,1080))
+    bg = pygame.transform.scale(bg, (width,height))
     # ------- Game functions
     def show_score(x,y,score):
         score = font.render("Score: " + str(score), True, (0,0,0))
@@ -48,7 +50,7 @@ def start_game(p1, p2):
     def draw_timer(timevalue):
         formattedtime = time.strftime('%M:%S', time.gmtime(timevalue))
         timestamp = font.render(formattedtime, True, (57, 71, 54))
-        screen.blit(timestamp, (1920/2-100,100))
+        screen.blit(timestamp, (width/2-100,100))
 
     def draw_circle(x,y, radius,color):
         circle = pygame.draw.circle(screen, color,(x,y),radius)
@@ -64,42 +66,7 @@ def start_game(p1, p2):
 
     def increment_score_p1():
         sound.play_score_sound()
-        player1.increment_score
-        roundcounter = roundcounter + 1
-        time.sleep(0.5)
-
-    def increment_score_p2():
-        sound.play_score_sound()
-        player2.increment_score
-        roundcounter = roundcounter + 1
-        time.sleep(0.5)
-        
-
-    # ------ Serve
-    if random.randint(0,1) == 1:
-        print("P1 serves")
-        player1.server = True
-    else:
-        print("P2 serves")
-        player2.server = True
-    
-    while True: #main game loop
-        screen.fill((255,255,255))
-        draw_background()
-        current_time = time.time()
-        delta_time = round((current_time - start_time))
-        draw_circle(1920/2-15,130,100,(200,200,200))
-        draw_timer(delta_time)
-        if abs(player1.score-player2.score) >= 2 and (player1.score >= 11 or player2.score >= 11): # Game is won by normal means
-            print("game over!")
-            #send winners to database
-            return
-        if delta_time > GAME_TIMEOUT: # Game times out
-            print("game timed out!")
-            #return, do nothing
-            return
-        
-        print("Round:" + str(player1.score + player2.score + 1))
+        player1.increment_score()
         if (player1.score >= 10) and (player2.score >= 10):
             print("above 10: swapping servers")
             player1.change_server()
@@ -117,29 +84,69 @@ def start_game(p1, p2):
                 print("P1 is now serving")
             if player2.server:
                 print("P2 is now serving")
+        #roundcounter = roundcounter + 1
+        time.sleep(0.5)
+
+    def increment_score_p2():
+        sound.play_score_sound()
+        player2.increment_score()
+        if (player1.score >= 10) and (player2.score >= 10):
+            print("above 10: swapping servers")
+            player1.change_server()
+            player2.change_server()
+            if player1.server:
+                print("P1 is now serving")
+            if player2.server:
+                print("P2 is now serving")
+        
+        elif (player1.score + player2.score) % 2 == 0 and (player1.score + player2.score) > 0:
+            print("swapping servers") 
+            player1.change_server()
+            player2.change_server()
+            if player1.server:
+                print("P1 is now serving")
+            if player2.server:
+                print("P2 is now serving")
+        #roundcounter = roundcounter + 1
+        time.sleep(0.5)
+        
+
+    # ------ Serve
+    if random.randint(0,1) == 1:
+        print("P1 serves")
+        player1.server = True
+    else:
+        print("P2 serves")
+        player2.server = True
+    
+    while True: #main game loop
+        screen.fill((255,255,255))
+        draw_background()
+        current_time = time.time()
+        delta_time = round((current_time - start_time))
+        draw_circle(width//2-15,130,100,(200,200,200))
+        draw_timer(delta_time)
+        if abs(player1.score-player2.score) >= 2 and (player1.score >= 11 or player2.score >= 11): # Game is won by normal means
+            print("game over!")
+            sound.play_game_over()
+            time.sleep(5)
+            #send winners to database
+            return
+        if delta_time > GAME_TIMEOUT: # Game times out
+            print("game timed out!")
+            #return, do nothing
+            return
 
          # ------- Update score, draw objects
         draw_circle(500,500,200,(52, 225, 235))
         draw_circle(1420,500,200,(52, 225, 235))
         show_score(500-120,700,player1.score)
-        show_score(1920-500-120,700,player2.score)
+        show_score(width-500-120,700,player2.score)
         draw_serve_indicator(player1.server)
 
 
         p1_button.when_pressed = increment_score_p1
         p2_button.when_pressed = increment_score_p2
-        # if button_player1(ispressed):
-            #player2.increment_score
-            #roundcounter = roundcounter + 1
-
-        # if button_player2(ispressed):
-            #player2.increment_score()
-            #round_counter = round_counter +1
-
-        print("p1 score:" +  str(player1.score))
-        print("p2 score:" +  str(player2.score))
-        print("------")
-
         
         # -- update screen
         pygame.display.update()
@@ -149,7 +156,7 @@ def pygame_test():
     pygame.init()
     screen = pygame.display.set_mode((800,600))
     pygame.display.set_caption("PongDog")
-    font = pygame.font.Font('freesansbold.ttf', 64)
+    font = pygame.font.Font('RobotoSlab-Bold.ttf', 64)
 
     def show_score(x,y):
         score = font.render("Score: " + str(20), True, (0,0,0))
