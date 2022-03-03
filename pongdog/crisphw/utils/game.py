@@ -1,11 +1,11 @@
 import math, time, random, pygame
-from utils import sound
-from gpiozero import Button, LED
+#from utils import sound
+#from gpiozero import Button, LED
 
-p1_led = LED(26)
-p2_led = LED(16)
-p1_button = Button(19)
-p2_button = Button(20)
+#p1_led = LED(26)
+#p2_led = LED(16)
+#p1_button = Button(19)
+#p2_button = Button(20)
 
 
 GAME_TIMEOUT = 600 #Game automatically stops after 600 seconds // 10 minutes
@@ -40,7 +40,7 @@ def start_game(p1, p2):
     font = pygame.font.Font('freesansbold.ttf', 64)
     serveIndicator = pygame.image.load('images/serve.png')
     serveIndicator = pygame.transform.scale(serveIndicator,(100,100))
-    bg = pygame.image.load('images/bg2.jpg')
+    bg = pygame.image.load('images/bg3.png')
     bg = pygame.transform.scale(bg, (width,height))
     # ------- Game functions
     def show_score(x,y,score):
@@ -49,23 +49,23 @@ def start_game(p1, p2):
     
     def draw_timer(timevalue):
         formattedtime = time.strftime('%M:%S', time.gmtime(timevalue))
-        timestamp = font.render(formattedtime, True, (57, 71, 54))
-        screen.blit(timestamp, (width/2-100,100))
+        timestamp = font.render(formattedtime, True, (74, 111, 125))
+        screen.blit(timestamp, (width/2-85,60))
 
     def draw_circle(x,y, radius,color):
         circle = pygame.draw.circle(screen, color,(x,y),radius)
 
     def draw_serve_indicator(p1_server):
         if p1_server:
-            screen.blit(serveIndicator,(500-20,200))
+            screen.blit(serveIndicator,(width//3.95,150))
         else:
-            screen.blit(serveIndicator,(1400-20,200))
+            screen.blit(serveIndicator,(width//1.35,150))
 
     def draw_background():
         screen.blit(bg,(0,0))
 
     def increment_score_p1():
-        sound.play_score_sound()
+        #sound.play_score_sound()
         player1.increment_score()
         if (player1.score >= 10) and (player2.score >= 10):
             print("above 10: swapping servers")
@@ -88,7 +88,7 @@ def start_game(p1, p2):
         time.sleep(0.5)
 
     def increment_score_p2():
-        sound.play_score_sound()
+        #sound.play_score_sound()
         player2.increment_score()
         if (player1.score >= 10) and (player2.score >= 10):
             print("above 10: swapping servers")
@@ -124,11 +124,11 @@ def start_game(p1, p2):
         draw_background()
         current_time = time.time()
         delta_time = round((current_time - start_time))
-        draw_circle(width//2-15,130,100,(200,200,200))
+        #draw_circle(width//2-15,130,100,(200,200,200))
         draw_timer(delta_time)
         if abs(player1.score-player2.score) >= 2 and (player1.score >= 11 or player2.score >= 11): # Game is won by normal means
             print("game over!")
-            sound.play_game_over()
+            #sound.play_game_over()
             time.sleep(5)
             #send winners to database
             return
@@ -138,15 +138,15 @@ def start_game(p1, p2):
             return
 
          # ------- Update score, draw objects
-        draw_circle(500,500,200,(52, 225, 235))
-        draw_circle(1420,500,200,(52, 225, 235))
-        show_score(500-120,700,player1.score)
-        show_score(width-500-120,700,player2.score)
+        draw_circle(width//3.95,height//3,150,(52, 225, 235))
+        draw_circle(width//1.35,height//3,150,(52, 225, 235))
+        show_score(width//5.32,height/2.15,player1.score)
+        show_score(width//1.48,height/2.15,player2.score)
         draw_serve_indicator(player1.server)
 
 
-        p1_button.when_pressed = increment_score_p1
-        p2_button.when_pressed = increment_score_p2
+        #p1_button.when_pressed = increment_score_p1
+        #p2_button.when_pressed = increment_score_p2
         
         # -- update screen
         pygame.display.update()
