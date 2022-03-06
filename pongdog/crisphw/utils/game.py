@@ -1,5 +1,5 @@
 import math, time, random, pygame, os
-import peripherals
+from  utils.peripherals import post_winner
 #from utils import sound
 #from gpiozero import Button, LED
 
@@ -194,10 +194,10 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
             print("game over!")
             #sound.play_game_over()
             if player1.score > player2.score:
-                peripherals.post_winner(player1.card_id,player2.card_id)
+                post_winner(player1.card_id,player2.card_id)
                 print(player1.name +" won!")
             else:
-                peripherals.post_winner(player2.card_id,player1.card_id)
+                post_winner(player2.card_id,player1.card_id)
                 print(player2.name +" won!")
             time.sleep(5)
             #send winners to database
