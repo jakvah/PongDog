@@ -1,4 +1,4 @@
-import math, time, random, pygame
+import math, time, random, pygame, os
 #from utils import sound
 #from gpiozero import Button, LED
 
@@ -11,22 +11,45 @@ import math, time, random, pygame
 GAME_TIMEOUT = 600 #Game automatically stops after 600 seconds // 10 minutes
 
 class Player:
-    def __init__(self,card_id):
+    def __init__(self,card_id, name, elo):
         self.card_id = card_id
+        self.name = name
+        self.elo = elo
         self.score = 0
         self.server = False
+        self.picture = False
+        if os.path.isfile("images/profilepictures/"+str(self.card_id)+".png"):
+            self.picture = True
+            print(str(self.card_id)+ " has a profile picture.")
     
     def increment_score(self):
         self.score = self.score + 1
 
     def change_server(self):
         self.server = not self.server 
-    
+
+# props 2 Mathias Haugland
+def elo_at_stake(p1_ELO,p2_ELO):
+    adv = 1800 #if you have adv more points than your opponent you are 10 times more likely to win
+    k = 50
+
+    pow1 = ((p1_ELO-p2_ELO)/adv)
+    exp_score1 = 1/(1+10**pow1)
+    p1_win = k*exp_score1 #p1_win is what p1 wins and p2 looses
+
+    pow2 = ((p2_ELO-p1_ELO)/adv)
+    exp_score2 = 1/(1+10**pow2)
+    p2_win = k*exp_score2 #p2_win is what p2 wins and p1 looses
+
+    return str(round(p1_win)), str(round(p2_win))
+
 
 # main game logic
-def start_game(p1, p2):
+def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
     start_time = time.time()
-    player1, player2 = Player(p1), Player(p2)
+    player1, player2 = Player(p1,p1_name,p1_elo), Player(p2,p2_name,p2_elo)
+
+    p1_elo_gain, p2_elo_gain = elo_at_stake(player1.elo, player2.elo)
     
     # ------- Window settings
     pygame.init()
@@ -37,29 +60,69 @@ def start_game(p1, p2):
     pygame.display.set_caption("PongDog")
 
     # ------- Text and resources
-    font = pygame.font.Font('freesansbold.ttf', 64)
+    #font = pygame.font.Font('freesansbold.ttf', 64)
+    scorefont = pygame.font.SysFont("Arial",64)
+    namefont = pygame.font.SysFont("Arial",40)
     serveIndicator = pygame.image.load('images/serve.png')
     serveIndicator = pygame.transform.scale(serveIndicator,(100,100))
     bg = pygame.image.load('images/bg3.png')
     bg = pygame.transform.scale(bg, (width,height))
+
+    #Profile Pictures
+    if player1.picture:
+        p1_pic = pygame.image.load('images/profilepictures/'+str(player1.card_id)+".png").convert_alpha()
+        p1_pic = pygame.transform.scale(p1_pic, (300,300))
+
+    if player2.picture:
+        p2_pic = pygame.image.load('images/profilepictures/'+str(player2.card_id)+".png").convert_alpha()
+        p2_pic = pygame.transform.scale(p2_pic, (300,300))
     # ------- Game functions
     def show_score(x,y,score):
-        score = font.render("Score: " + str(score), True, (0,0,0))
+        score = scorefont.render("Score: " + str(score), True, (0,0,0))
         screen.blit(score, (x, y))
-    
+
+    def draw_stats():
+        p1_elo_text = scorefont.render("ELO: " + str(player1.elo),True, (0,0,0))
+        p2_elo_text = scorefont.render("ELO: " + str(player2.elo),True, (0,0,0))
+        p1_name_text = namefont.render(player1.name,True, (0,0,0))
+        p2_name_text = namefont.render(player2.name,True, (0,0,0))
+        elo_gain_text = namefont.render("Gain: ", True, (0,0,0))
+        elo_loss_text = namefont.render("Loss: ", True, (0,0,0))
+        p1_elo_gain_text = namefont.render(p1_elo_gain,True, (0,150,0))
+        p1_elo_loss_text = namefont.render(p2_elo_gain,True, (150,0,0))
+        p2_elo_gain_text = namefont.render(p2_elo_gain,True, (0,150,0))
+        p2_elo_loss_text = namefont.render(p1_elo_gain,True, (150,0,0))
+        screen.blit(p1_name_text, (width//6, height//1.85))
+        screen.blit(p2_name_text, (width//1.525, height//1.85))
+        screen.blit(elo_gain_text, (width//6, height//1.7))
+        screen.blit(elo_gain_text, (width//1.525, height//1.7))
+        screen.blit(p1_elo_gain_text, (width//4.7+20, height//1.7))
+        screen.blit(p2_elo_gain_text, (width//1.425+20, height//1.7))
+        screen.blit(elo_loss_text, (width//6, height//1.58))
+        screen.blit(elo_loss_text, (width//1.525, height//1.58))
+        screen.blit(p1_elo_loss_text, (width//4.7+20, height//1.58))
+        screen.blit(p2_elo_loss_text, (width//1.425+20, height//1.58))
+        screen.blit(p1_elo_text, (width//6, height//2.10))
+        screen.blit(p2_elo_text, (width//1.525, height//2.10))
+
     def draw_timer(timevalue):
         formattedtime = time.strftime('%M:%S', time.gmtime(timevalue))
-        timestamp = font.render(formattedtime, True, (74, 111, 125))
+        timestamp = scorefont.render(formattedtime, True, (74, 111, 125))
         screen.blit(timestamp, (width/2-85,60))
 
+    def draw_profile_pictures():
+        if player1.picture:
+            screen.blit(p1_pic,(width//5.7,height//5.14))
+        if player2.picture:
+            screen.blit(p2_pic,(width//1.51, height//5.14))
     def draw_circle(x,y, radius,color):
         circle = pygame.draw.circle(screen, color,(x,y),radius)
 
     def draw_serve_indicator(p1_server):
         if p1_server:
-            screen.blit(serveIndicator,(width//3.95,150))
+            screen.blit(serveIndicator,(width//3.95,110))
         else:
-            screen.blit(serveIndicator,(width//1.35,150))
+            screen.blit(serveIndicator,(width//1.35,110))
 
     def draw_background():
         screen.blit(bg,(0,0))
@@ -138,10 +201,12 @@ def start_game(p1, p2):
             return
 
          # ------- Update score, draw objects
-        draw_circle(width//3.95,height//3,150,(52, 225, 235))
-        draw_circle(width//1.35,height//3,150,(52, 225, 235))
-        show_score(width//5.32,height/2.15,player1.score)
-        show_score(width//1.48,height/2.15,player2.score)
+        #draw_circle(width//3.95,height//3,150,(52, 225, 235))
+        #draw_circle(width//1.35,height//3,150,(52, 225, 235))
+        draw_profile_pictures()
+        show_score(width//5.32,height/1.4,player1.score)
+        show_score(width//1.48,height/1.4,player2.score)
+        draw_stats()
         draw_serve_indicator(player1.server)
 
 
@@ -149,29 +214,6 @@ def start_game(p1, p2):
         #p2_button.when_pressed = increment_score_p2
         
         # -- update screen
-        pygame.display.update()
-
-
-def pygame_test():
-    pygame.init()
-    screen = pygame.display.set_mode((800,600))
-    pygame.display.set_caption("PongDog")
-    font = pygame.font.Font('RobotoSlab-Bold.ttf', 64)
-
-    def show_score(x,y):
-        score = font.render("Score: " + str(20), True, (0,0,0))
-        screen.blit(score, (x, y))
-
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        
-        screen.fill((255,255,255))
-        show_score(10,10)
-        show_score(100,200)
-
         pygame.display.update()
 
 
