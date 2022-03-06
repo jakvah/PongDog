@@ -75,3 +75,11 @@ def get_name_and_elo(playerID):
     except:
         print("Could not fetch data. Player exists?")
         return 0,0
+
+def post_winner(winner, loser):
+    url = f"https://jakvah.pythonanywhere.com/add_result/{winner}/{loser}"
+    r = requests.get(url)
+    if r.text == "200":
+        return True
+    else:
+        return False
