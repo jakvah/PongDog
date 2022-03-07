@@ -84,7 +84,6 @@
     var currentServer;
     var firstServer;
     firstServer = Math.round(Math.random());
-    console.log(firstServer)
 
     
     var matchPageHTML;
@@ -105,7 +104,7 @@
                         var now_t = new Date();
                         
                         var diff = now_t - start_t;
-
+                        console.log(res.ongoing)
                         min = Math.floor(diff / 1000 / 60);
                         sec = Math.floor(diff / 1000) - (min * 60);
                         let m = addZero(min);
@@ -121,11 +120,11 @@
                             match_header = "MATCH OVER"
                             time = "-:-"
                             limbo_counter += 1;
-                            console.log(limbo_counter)
-                            if (limbo_counter == 10) {
+                            
+                            if (limbo_counter == 100) {
                                 $.ajax({
                                 type: "get",
-                                url: "https://jakvah.pythonanywhere.com/reset_match_status/pongdg4life",
+                                url: "http://localhost:5000/reset_match_status/pongdg4life",
               
                                 });
                             }
@@ -168,7 +167,7 @@
                                     matchPageHTML += '<div class="row">';
                                         matchPageHTML += '<div class=col-md-12>';
                                             matchPageHTML += '<div class="text-center">';
-                                                console.log(getServer(res.player1_score,res.player2_score,firstServer));
+                                                
                                                 if (getServer(res.player1_score,res.player2_score,firstServer) == 0) {
                                                     matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player1_name + ' <i style = "padding-left:5px;"class="fas fa-table-tennis"></i></h6> </h2>';
                                                    
@@ -271,8 +270,8 @@
                         matchPageHTML += '</div>'; 
                         
                     }
-                    else if (res.ongoing == 0 || limbo_counter == 10){
-                        matchPageHTML += '<meta http-equiv="refresh" content="0; URL=http://jakobvahlin.com/pongdog/lb_dynamic" />';                        
+                    else if (res.ongoing == 0 || limbo_counter == 100){
+                        matchPageHTML += '<meta http-equiv="refresh" content="0; URL=http://localhost:5000/pongdog/lb_dynamic" />';                        
                     }
                   
       
