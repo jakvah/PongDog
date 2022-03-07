@@ -67,7 +67,7 @@ def get_local_scores():
     match_dict = {}
     
     lines = []
-    with open('scores.txt') as f:
+    with open('pongdog/crisphw/utils/scores.txt') as f:
         lines = f.readlines()
 
     start_time = lines[0]
@@ -135,7 +135,7 @@ def get_local_scores():
 
 @app.route("/reset_match_status/pongdg4life")
 def reset_local():
-    with open('scores.txt', 'w') as f:
+    with open('pongdog/crisphw/utils/scores.txt', 'w') as f:
         f.writelines("- \n")
         f.writelines("-1,-1,-1,-1 \n")
         f.writelines("-1,-1,-1,-1 \n")
