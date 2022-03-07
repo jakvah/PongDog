@@ -1,4 +1,4 @@
-import requests, os, imghdr
+import requests, os, imghdr, datetime
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -92,3 +92,12 @@ def post_winner(winner, loser):
         return True
     else:
         return False
+
+
+def get_timestamp():
+    dato = str(datetime.datetime.now())
+    date = dato.split(' ')[0]
+    klokkeslett = dato.split(' ')[1]
+    dog = klokkeslett.split('.')[0]
+    fulltimestamp = date+'T'+dog
+    return fulltimestamp

@@ -1,5 +1,5 @@
 import math, time, random, pygame, os
-from  utils.peripherals import post_winner
+from  utils.peripherals import post_winner, get_timestamp, write_score_file
 from utils import sound
 from gpiozero import Button, LED
 
@@ -52,6 +52,9 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
 
     p1_elo_gain, p2_elo_gain = elo_at_stake(player1.elo, player2.elo)
     
+    timestamp = get_timestamp()
+
+    write_score_file(timestamp,player1.card_id,player2.card_id,player1.name,player2.name,player1.elo,player2.elo,0,0)
     # ------- Window settings
     pygame.init()
     flags = pygame.FULLSCREEN
@@ -131,6 +134,7 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
     def increment_score_p1():
         sound.play_score_sound()
         player1.increment_score()
+        write_score_file(timestamp,player1.card_id,player2.card_id,player1.name,player2.name,player1.elo,player2.elo,player1.score,player2.score)
         if (player1.score >= 10) and (player2.score >= 10):
             print("above 10: swapping servers")
             player1.change_server()
@@ -153,6 +157,7 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
     def increment_score_p2():
         sound.play_score_sound()
         player2.increment_score()
+        write_score_file(timestamp,player1.card_id,player2.card_id,player1.name,player2.name,player1.elo,player2.elo,player1.score,player2.score)
         if (player1.score >= 10) and (player2.score >= 10):
             print("above 10: swapping servers")
             player1.change_server()
