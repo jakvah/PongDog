@@ -33,6 +33,14 @@ def convert_image_to_cropped_png(playerID, filetype):
     print("Done!")
     return
 
+
+def write_score_file(timestamp,play1_id,play2_id,play1_name,play2_name,play1_elo,play2_elo,p1_score,p2_score):
+    with open("scores.txt", "w") as f:
+        f.write(f"{timestamp}\n")
+        f.write(f"{play1_id},{play1_name},{play1_elo},{p1_score}\n")
+        f.write(f"{play2_id},{play2_name},{play2_elo},{p2_score}\n")
+
+
 def fetch_player_image(playerID):
     if os.path.isfile("images/profilepictures/"+str(playerID)+".png") or os.path.isfile("images/profilepictures/"+str(playerID)+".jpg"):
         print("Profile picture already exists.")
