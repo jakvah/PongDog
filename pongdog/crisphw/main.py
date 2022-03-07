@@ -10,6 +10,8 @@ random.seed()
 while True:
     pygame.init()
     while True:
+        game.blink_p1_led(1,1,10)
+        game.blink_p2_led(1,1,10)
         print("Player 1, please scan card:")
         p1_card = Cardreader.run()
         if p1_card == "0":

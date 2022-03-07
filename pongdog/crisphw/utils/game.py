@@ -44,10 +44,19 @@ def elo_at_stake(p1_ELO,p2_ELO):
 
     return str(round(p1_win)), str(round(p2_win))
 
+def blink_p1_led(on,off,n):
+    p1_led.blink(on,off,n)
+    
+def blink_p2_led(on,off,n):
+    p2_led.blink(on,off,n)
+    
 
+def do_nothing():
+    return
 # main game logic
 def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
     start_time = time.time()
+    sound.play_game_start()
     player1, player2 = Player(p1,p1_name,p1_elo), Player(p2,p2_name,p2_elo)
 
     p1_elo_gain, p2_elo_gain = elo_at_stake(player1.elo, player2.elo)
@@ -61,7 +70,7 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
     width = 1920   
     height = 1080
     screen = pygame.display.set_mode((0,0))
-    pygame.display.set_caption("PongDog")
+    pygame.display.set_caption("Fy faen, har brukt alt for mye tid på da dritet her. - Matias")
 
     # ------- Text and resources
     #font = pygame.font.Font('freesansbold.ttf', 64)
@@ -133,6 +142,7 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
 
     def increment_score_p1():
         sound.play_score_sound()
+        p1_led.blink(0.1,0.1,5)
         player1.increment_score()
         write_score_file(timestamp,player1.card_id,player2.card_id,player1.name,player2.name,player1.elo,player2.elo,player1.score,player2.score)
         if (player1.score >= 10) and (player2.score >= 10):
@@ -155,6 +165,7 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
         #roundcounter = roundcounter + 1
 
     def increment_score_p2():
+        p2_led.blink(0.1,0.1,5)
         sound.play_score_sound()
         player2.increment_score()
         write_score_file(timestamp,player1.card_id,player2.card_id,player1.name,player2.name,player1.elo,player2.elo,player1.score,player2.score)
@@ -208,8 +219,11 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
             else:
                 post_winner(player2.card_id,player1.card_id)
                 print(player2.name +" won!")
+                
+            p1_button.when_pressed = do_nothing
+            p2_button.when_pressed = do_nothing
             time.sleep(5)
-            pygame.display.quit()
+            pygame.quit()
             #send winners to database
             return
         if delta_time > GAME_TIMEOUT: # Game times out
@@ -232,8 +246,3 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
         
         # -- update screen
         pygame.display.update()
-
-
-if __name__ == "__main__":
-    start_game(69,20)
-    #pygame_test()
