@@ -149,7 +149,6 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
             if player2.server:
                 print("P2 is now serving")
         #roundcounter = roundcounter + 1
-        time.sleep(0.5)
 
     def increment_score_p2():
         sound.play_score_sound()
@@ -172,7 +171,6 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
             if player2.server:
                 print("P2 is now serving")
         #roundcounter = roundcounter + 1
-        time.sleep(0.5)
         
 
     # ------ Serve
@@ -206,9 +204,9 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
                 post_winner(player2.card_id,player1.card_id)
                 print(player2.name +" won!")
             time.sleep(5)
-            pygame.quit()
+            pygame.display.quit()
             #send winners to database
-            break
+            return
         if delta_time > GAME_TIMEOUT: # Game times out
             print("game timed out!")
             #return, do nothing
