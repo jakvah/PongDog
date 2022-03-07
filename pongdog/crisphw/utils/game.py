@@ -1,12 +1,12 @@
 import math, time, random, pygame, os
 from  utils.peripherals import post_winner
-#from utils import sound
-#from gpiozero import Button, LED
+from utils import sound
+from gpiozero import Button, LED
 
-#p1_led = LED(26)
-#p2_led = LED(16)
-#p1_button = Button(19)
-#p2_button = Button(20)
+p1_led = LED(26)
+p2_led = LED(16)
+p1_button = Button(19)
+p2_button = Button(20)
 
 
 GAME_TIMEOUT = 600 #Game automatically stops after 600 seconds // 10 minutes
@@ -57,7 +57,7 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
     flags = pygame.FULLSCREEN
     width = 1920   
     height = 1080
-    screen = pygame.display.set_mode((0,0), flags)
+    screen = pygame.display.set_mode((0,0))
     pygame.display.set_caption("PongDog")
 
     # ------- Text and resources
@@ -129,7 +129,7 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
         screen.blit(bg,(0,0))
 
     def increment_score_p1():
-        #sound.play_score_sound()
+        sound.play_score_sound()
         player1.increment_score()
         if (player1.score >= 10) and (player2.score >= 10):
             print("above 10: swapping servers")
@@ -152,7 +152,7 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
         time.sleep(0.5)
 
     def increment_score_p2():
-        #sound.play_score_sound()
+        sound.play_score_sound()
         player2.increment_score()
         if (player1.score >= 10) and (player2.score >= 10):
             print("above 10: swapping servers")
@@ -192,7 +192,13 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
         draw_timer(delta_time)
         if abs(player1.score-player2.score) >= 2 and (player1.score >= 11 or player2.score >= 11): # Game is won by normal means
             print("game over!")
-            #sound.play_game_over()
+            draw_profile_pictures()
+            show_score(width//5.32,height/1.4,player1.score)
+            show_score(width//1.48,height/1.4,player2.score)
+            draw_stats()
+            draw_serve_indicator(player1.server)
+            pygame.display.update()
+            sound.play_game_over()
             if player1.score > player2.score:
                 post_winner(player1.card_id,player2.card_id)
                 print(player1.name +" won!")
@@ -200,8 +206,9 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
                 post_winner(player2.card_id,player1.card_id)
                 print(player2.name +" won!")
             time.sleep(5)
+            pygame.quit()
             #send winners to database
-            return
+            break
         if delta_time > GAME_TIMEOUT: # Game times out
             print("game timed out!")
             #return, do nothing
@@ -217,8 +224,8 @@ def start_game(p1, p2, p1_name, p2_name, p1_elo, p2_elo):
         draw_serve_indicator(player1.server)
 
 
-        #p1_button.when_pressed = increment_score_p1
-        #p2_button.when_pressed = increment_score_p2
+        p1_button.when_pressed = increment_score_p1
+        p2_button.when_pressed = increment_score_p2
         
         # -- update screen
         pygame.display.update()

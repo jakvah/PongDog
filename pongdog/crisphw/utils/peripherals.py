@@ -78,7 +78,8 @@ def get_name_and_elo(playerID):
 
 def post_winner(winner, loser):
     url = f"https://jakvah.pythonanywhere.com/add_result/{winner}/{loser}"
-    r = requests.get(url)
+    r = requests.post(url)
+    print(r.text)
     if r.text == "200":
         return True
     else:
