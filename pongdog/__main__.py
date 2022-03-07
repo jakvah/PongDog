@@ -119,7 +119,7 @@ def get_local_scores():
         match_dict["player1_elo_win"] = elo_at_stake(p1_elo, p2_elo)[0]
         match_dict["player1_elo_loss"] = - \
             (elo_at_stake(p1_elo, p2_elo)[1])
-        match_dict["player2_elo_win"] = elo_at_stake(p2_elo, p2_elo)[1]
+        match_dict["player2_elo_win"] = elo_at_stake(p1_elo, p2_elo)[1]
         match_dict["player2_elo_loss"] = - \
             (elo_at_stake(p1_elo, p2_elo)[0])
 
@@ -129,6 +129,7 @@ def get_local_scores():
         response = jsonify(match_dict)
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
+
 
 
 # FROM: https://github.com/hermabe/rfid-card
