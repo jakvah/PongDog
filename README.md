@@ -1,6 +1,9 @@
 # PongDog
 Sniffing ID cards for Ping Pong data
 
+![img](/imgs/pongdog.png)
+
+
 ### Crispdog
 
 To run PongDog locally, better known as CrispDog, execute the following from the top directory;
