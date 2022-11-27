@@ -53,6 +53,39 @@
     if (i < 10) {i = "0" + i}
     return i;
     }
+    function getServer (p1Score,p2Score,firstServer) {
+        if (p1Score + p2Score == 0) {
+            return firstServer
+        }
+        if ((p1Score >= 10) && (p2Score >= 10)) {
+            if ((p1Score + p2Score) % 2 == 0){
+                // partall -> firstserver
+                return firstServer
+            } else {
+                return (1 + firstServer) % 2
+            }
+                
+        } else {
+            if (Math.floor((p1Score + p2Score) / 2) % 2 !== 0) {
+                // Change server
+                return (1 + firstServer) % 2
+            }
+            else {
+                return firstServer
+            }
+
+        }
+        
+
+    }
+
+
+
+    var currentServer;
+    var firstServer;
+    firstServer = Math.round(Math.random());
+
+    
     var matchPageHTML;
     var limbo_counter;
     limbo_counter = 0;
@@ -60,7 +93,7 @@
       { 
           $.ajax({
               type: "get",
-              url: "https://jakvah.pythonanywhere.com/get_complete_match_stats",
+              url: "http://localhost:5000/get_local_game_stat",
               
               success:function(res)
               {
@@ -71,7 +104,7 @@
                         var now_t = new Date();
                         
                         var diff = now_t - start_t;
-
+                        console.log(res.ongoing)
                         min = Math.floor(diff / 1000 / 60);
                         sec = Math.floor(diff / 1000) - (min * 60);
                         let m = addZero(min);
@@ -87,11 +120,11 @@
                             match_header = "MATCH OVER"
                             time = "-:-"
                             limbo_counter += 1;
-                            console.log(limbo_counter)
-                            if (limbo_counter == 30) {
+                            
+                            if (limbo_counter == 100) {
                                 $.ajax({
                                 type: "get",
-                                url: "https://jakvah.pythonanywhere.com/reset_match_status/pongdg4life",
+                                url: "http://localhost:5000/reset_match_status/pongdg4life",
               
                                 });
                             }
@@ -134,7 +167,15 @@
                                     matchPageHTML += '<div class="row">';
                                         matchPageHTML += '<div class=col-md-12>';
                                             matchPageHTML += '<div class="text-center">';
-                                                matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player1_name + '</h2>';
+                                                
+                                                if (getServer(res.player1_score,res.player2_score,firstServer) == 0) {
+                                                    matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player1_name + ' <i style = "padding-left:5px;"class="fas fa-table-tennis"></i></h6> </h2>';
+                                                   
+                                                } else {
+                                                    matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player1_name + '</h2>';
+                                                }
+                                                
+                                                
                                             matchPageHTML += '</div>';
                                         matchPageHTML += '</div>';
                                     matchPageHTML += '</div>';
@@ -181,7 +222,12 @@
                                     matchPageHTML += '<div class="row">';
                                         matchPageHTML += '<div class=col-md-12>';
                                             matchPageHTML += '<div class="text-center">';
-                                                matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player2_name + '</h2>';
+                                                if (getServer(res.player1_score,res.player2_score,firstServer) == 1) {
+                                                    matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player2_name + ' <i style = "padding-left:5px;"class="fas fa-table-tennis"></i></h6> </h2>';
+                                                } else {
+                                                    matchPageHTML += '<h2 style="margin-top:10px; class="va">' + res.player2_name + '</h2>';
+                                                }
+                                                
                                             matchPageHTML += '</div>';
                                         matchPageHTML += '</div>';
                                     matchPageHTML += '</div>';
@@ -224,8 +270,8 @@
                         matchPageHTML += '</div>'; 
                         
                     }
-                    else if (res.ongoing == 0 || limbo_counter == 10){
-                        matchPageHTML += '<div class="hero-text"><h3>No active game found! Tap cards to begin!</h3></div>';
+                    else if (res.ongoing == 0 || limbo_counter == 100){
+                        matchPageHTML += '<meta http-equiv="refresh" content="0; URL=http://localhost:5000/pongdog/lb_dynamic" />';                        
                     }
                   
       
@@ -235,7 +281,7 @@
           $("#lbContent").html(matchPageHTML);
       
       
-      }, 1000);
+      }, 100);
       
       </script>
 
@@ -279,7 +325,7 @@ body, html {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(1.175);
+  transform: translate(-50%, -50%) scale(1.5);
   
   color: white;
 }
