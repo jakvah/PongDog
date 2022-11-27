@@ -84,12 +84,12 @@ setInterval(function()
         url: "http://localhost:5000/get_local_game_stat",
         success:function(res) {
             if (res.ongoing !== 0) {
-                console.log(res.ongoing)
-                console.log("switching to match page")
+                console.log(res.ongoing);
+                console.log("switching to match page");
                 $("#lbContent").html('<meta http-equiv="refresh" content="0; URL=http://localhost:5000/pongdog/match_page"/>');
             } else {
                 pagepicker += "match";
-                console.log(res.ongoing)
+                console.log(res.ongoing);
             }
         }
     });

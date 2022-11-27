@@ -67,7 +67,7 @@ def get_local_scores():
     match_dict = {}
     
     lines = []
-    with open('scores.txt') as f:
+    with open('pongdog/crisphw/utils/scores.txt') as f:
         lines = f.readlines()
 
     start_time = lines[0]
@@ -81,7 +81,9 @@ def get_local_scores():
     p2_elo = int(lines[2].split(",")[2])
     p2_score = int(lines[2].split(",")[3])
     
-    if (abs(p1_score -p2_score) >= 2) and (p1_score > 11 or p2_score > 11):
+    if (abs(p1_score -p2_score) >= 2) and (p1_score >= 11 or p2_score >= 11):
+        ongoing = 2
+    elif p1_score == -1 and p2_score == -1:
         ongoing = 0
     else:
         ongoing = 1
@@ -119,7 +121,7 @@ def get_local_scores():
         match_dict["player1_elo_win"] = elo_at_stake(p1_elo, p2_elo)[0]
         match_dict["player1_elo_loss"] = - \
             (elo_at_stake(p1_elo, p2_elo)[1])
-        match_dict["player2_elo_win"] = elo_at_stake(p2_elo, p2_elo)[1]
+        match_dict["player2_elo_win"] = elo_at_stake(p1_elo, p2_elo)[1]
         match_dict["player2_elo_loss"] = - \
             (elo_at_stake(p1_elo, p2_elo)[0])
 
@@ -130,6 +132,15 @@ def get_local_scores():
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
 
+
+@app.route("/reset_match_status/pongdg4life")
+def reset_local():
+    with open('pongdog/crisphw/utils/scores.txt', 'w') as f:
+        f.writelines("- \n")
+        f.writelines("-1,-1,-1,-1 \n")
+        f.writelines("-1,-1,-1,-1 \n")
+
+    
 
 # FROM: https://github.com/hermabe/rfid-card
 # Reverses CARD EM number to RFID number

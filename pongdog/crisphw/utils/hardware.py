@@ -6,7 +6,6 @@ p2_led = LED(16)
 p1_button = Button(19)
 p2_button = Button(20)
 
-def handleSignal(num, stack):
-    return 0
 
-signal.signal(signal.SIGUSR1, handleSignal)
+def p1_led_blink(on,off,n)
+    p1_led.blink(on,off,n)

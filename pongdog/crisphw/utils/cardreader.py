@@ -60,6 +60,7 @@ class Cardreader():
                                     container.append(digit)
                 except BlockingIOError:
                     print("Card-reader timed out.")
+                    device.ungrab()
                     return str(0)
         except:
             # catch all exceptions to be able release the device
