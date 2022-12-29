@@ -21,3 +21,12 @@ Line 1: Start time
 Line 2: p1_id, p1_name, p1_elo, p1_score
 Line 3: p2_id, p2_name, p2_elo, p2_score
 ```
+
+
+### Run with docker
+
+Build the image with
+
+´´´
+docker build -t flask-rest-api .
+´´´
