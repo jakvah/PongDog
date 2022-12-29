@@ -100,7 +100,7 @@
                 
                 matchPageHTML = "";
                     if (res.ongoing !== 0) {
-                        var start_t = new Date(res.start_time + "0"); // Matias fix timestamp!
+                        var start_t = new Date(res.start_time); // Matias fix timestamp!
                         var now_t = new Date();
                         
                         var diff = now_t - start_t;

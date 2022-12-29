@@ -46,7 +46,7 @@ def leaderboard():
 @app.route("/pongdog/match_page")
 def match_page():
     return render_template("pongdog/match_page.html")
-
+''
 @app.route("/dynamic_view")
 def dynamic_view():
     pass
@@ -140,8 +140,7 @@ def reset_local():
         f.writelines("-1,-1,-1,-1 \n")
         f.writelines("-1,-1,-1,-1 \n")
 
-    
-
+# ---------------- Utils ------------------ # 
 # FROM: https://github.com/hermabe/rfid-card
 # Reverses CARD EM number to RFID number
 def reverseBytes(number):
@@ -186,4 +185,4 @@ def new_scores(p1_ELO, p2_ELO, winner):  # winner is 'p1' or 'p2'
 
 if __name__ == '__main__':
     # Set debug false if it is ever to be deployed
-    app.run(debug=True) 
+    app.run(debug=True, host="0.0.0.0") 
