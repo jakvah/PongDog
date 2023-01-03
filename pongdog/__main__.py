@@ -13,11 +13,9 @@ app.secret_key = "super secret key"
 #CORS(app)
 NUM_TABS = 3
 
-
 @app.route("/")
 def index():
     return redirect("/pongdog/lb_dynamic")
-
 
 @app.route("/knapper")
 def knapp():
@@ -30,7 +28,6 @@ def leaderboard():
 @app.route("/pongdog/match_page")
 def match_page():
     return render_template("pongdog/match_page.html")
-''
 
 @app.route("/pongdog/lb_dynamic")
 def dynamic():
@@ -66,14 +63,14 @@ def increment_score(player_num):
         ldb.increment_score(player_num)
 
         game_stat = ldb.get_local_game_state()
+        p1_id = game_stat[1]
+        p2_id = game_stat[2]
         p1_score = game_stat[7]
         p2_score = game_stat[8]
         
         diff = abs(p1_score - p2_score)
         if (p1_score >= 11 and diff >= 2) or (p2_score >= 11 and diff >= 2):
             ldb.limbo_match()
-            p1_id = ldb.get_player_id(1)
-            p2_id = ldb.get_player_id(2)
             bu.add_result(p1_id,p2_id,p1_score,p2_score)
             
         if TEST:
