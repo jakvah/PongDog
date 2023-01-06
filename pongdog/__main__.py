@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*- 
-from flask import Flask, request, render_template, Markup,flash,redirect,jsonify
+from flask import Flask, request, render_template, Markup,flash,redirect,jsonify, g
 import requests
+import mysql.connector
 
+from pongdog.config import pongdog_config as pc
 from pongdog.api import local_db as ldb
 from pongdog.utils import pongdog_utils as pu
 from pongdog.utils import backend_utils as bu
@@ -12,6 +14,17 @@ app = Flask(__name__)
 app.secret_key = "super secret key"
 #CORS(app)
 NUM_TABS = 3
+
+def get_conn():
+
+    if not hasattr(g, 'db_conn'):
+        if pc.DOCKER:
+            g.db_conn = mysql.connector.connect(host = 'gamedb', user = 'root', password = 'root', database = "game_db", port = 3306)
+        else:
+            g.db_conn = ldb.get_database_connection(pc.DOCKER)
+    return g.db_conn
+
+
 
 @app.route("/")
 def index():
@@ -33,10 +46,16 @@ def match_page():
 def dynamic():
     return render_template("pongdog/lb_dynamic.html")
 
+@app.route("/pongdog/register")
+def register():
+    return render_template("pongdog/registerpage.html")
+
 
 @app.route("/init_game/<p1_id>/<p2_id>/<time_stamp>",methods = ["POST"])
 def init_game(p1_id,p2_id,time_stamp):
-    if ldb.is_match_ongoing():
+    CONN = get_conn()
+    CUR = CONN.cursor()
+    if ldb.is_match_ongoing(CONN,CUR):
         if TEST:
             flash("Executed request with response: 300")
             return redirect("/knapper")
@@ -47,7 +66,7 @@ def init_game(p1_id,p2_id,time_stamp):
     p2_elo,p2_name = bu.get_player_overview(p2_id)
     
     try:
-        ldb.init_match(p1_id,p2_id,p1_elo,p2_elo,p1_name,p2_name,time_stamp)
+        ldb.init_match(CONN,CUR, p1_id,p2_id,p1_elo,p2_elo,p1_name,p2_name,time_stamp)
         if TEST:
             flash(f"Executed request with response: 200")
             return redirect("/knapper")
@@ -60,9 +79,18 @@ def increment_score(player_num):
     if player_num != "p1" and player_num != "p2": raise ValueError(f"Invalid indentifier:{player_num}")
     
     try:
-        ldb.increment_score(player_num)
+        CONN = get_conn()
+        CUR = CONN.cursor()
+        # Check if match is ongoing
+        if not ldb.is_match_ongoing(CONN,CUR):
+            if TEST:
+                flash("Executed requeset with response: 300")
+                return redirect("/knapper")
+            else:
+                return "300"
+        ldb.increment_score(CONN,CUR, player_num)
 
-        game_stat = ldb.get_local_game_state()
+        game_stat = ldb.get_local_game_state(CONN,CUR)
         p1_id = game_stat[1]
         p2_id = game_stat[2]
         p1_score = game_stat[7]
@@ -70,7 +98,7 @@ def increment_score(player_num):
         
         diff = abs(p1_score - p2_score)
         if (p1_score >= 11 and diff >= 2) or (p2_score >= 11 and diff >= 2):
-            ldb.limbo_match()
+            ldb.limbo_match(CONN,CUR)
             bu.add_result(p1_id,p2_id,p1_score,p2_score)
             
         if TEST:
@@ -81,9 +109,6 @@ def increment_score(player_num):
         return str(e)
 
 
-@app.route("/pongdog/register")
-def register():
-    return render_template("pongdog/registerpage.html")
 
 @app.route("/pongdog/add_pong_dog",methods = ["POST"])
 def add_pong_dog():
@@ -110,8 +135,10 @@ def add_pong_dog():
 
 @app.route("/get_local_game_stat")
 def get_local_scores():
+    CONN = get_conn()
+    CUR = CONN.cursor()
     match_dict = {}
-    table = ldb.get_local_game_state()
+    table = ldb.get_local_game_state(CONN,CUR)
     
     ongoing = table[0]
     p1_id = table[1]
@@ -180,7 +207,9 @@ def get_local_scores():
 @app.route("/reset_match_status/pongdg4life", methods = ["POST"])
 def reset_mach():
     try:
-        ldb.reset_match()
+        CONN = get_conn()
+        CUR = CONN.cursor()
+        ldb.reset_match(CONN,CUR)
         if TEST:
             flash(f"Executed request with response: 200")
             return redirect("/knapper")
@@ -188,16 +217,13 @@ def reset_mach():
     except Exception as e:
         return "400"
 
-"""
-def reset_local_old():
-    with open('pongdog/crisphw/utils/scores.txt', 'w') as f:
-        f.writelines("- \n")
-        f.writelines("-1,-1,-1,-1 \n")
-        f.writelines("-1,-1,-1,-1 \n")
-"""
-
-
 
 if __name__ == '__main__':
+    print("Initializing database...")
+    #CONN = get_conn()
+    #CUR = CONN.cursor()
+    ldb.setup(docker=pc.DOCKER)
+
     # Set debug false if it is ever to be deployed
+    print("Starting game server ...")
     app.run(debug=True, host="0.0.0.0") 
