@@ -1,27 +1,121 @@
 # -*- coding: utf-8 -*- 
-from flask import Flask, request, render_template, Markup,flash,redirect,jsonify
+from flask import Flask, request, render_template, Markup,flash,redirect,jsonify, g
 import requests
+import mysql.connector
+
+from pongdog.config import pongdog_config as pc
+from pongdog.api import local_db as ldb
+from pongdog.utils import pongdog_utils as pu
+from pongdog.utils import backend_utils as bu
+
+TEST = True
 
 app = Flask(__name__)
 app.secret_key = "super secret key"
 #CORS(app)
 NUM_TABS = 3
 
+def get_conn():
+
+    if not hasattr(g, 'db_conn'):
+        if pc.DOCKER:
+            g.db_conn = mysql.connector.connect(host = 'gamedb', user = 'root', password = 'root', database = "game_db", port = 3306)
+        else:
+            g.db_conn = ldb.get_database_connection(pc.DOCKER)
+    return g.db_conn
+
+
 
 @app.route("/")
 def index():
     return redirect("/pongdog/lb_dynamic")
 
+@app.route("/knapper")
+def knapp():
+    return render_template("pongdog/knapp.html")
+
+@app.route("/pongdog/leaderboard")
+def leaderboard():
+    return render_template("pongdog/leaderboard.html")
+
+@app.route("/pongdog/match_page")
+def match_page():
+    return render_template("pongdog/match_page.html")
+
+@app.route("/pongdog/lb_dynamic")
+def dynamic():
+    return render_template("pongdog/lb_dynamic.html")
+
 @app.route("/pongdog/register")
 def register():
     return render_template("pongdog/registerpage.html")
+
+
+@app.route("/init_game/<p1_id>/<p2_id>/<time_stamp>",methods = ["POST"])
+def init_game(p1_id,p2_id,time_stamp):
+    CONN = get_conn()
+    CUR = CONN.cursor()
+    if ldb.is_match_ongoing(CONN,CUR):
+        if TEST:
+            flash("Executed request with response: 300")
+            return redirect("/knapper")
+        else:
+            return "300"
+    
+    p1_elo, p1_name = bu.get_player_overview(p1_id)
+    p2_elo,p2_name = bu.get_player_overview(p2_id)
+    
+    try:
+        ldb.init_match(CONN,CUR, p1_id,p2_id,p1_elo,p2_elo,p1_name,p2_name,time_stamp)
+        if TEST:
+            flash(f"Executed request with response: 200")
+            return redirect("/knapper")
+        return "200"
+    except Exception as e:
+        return "400"
+
+@app.route("/increment_score/<player_num>",methods = ["POST"])
+def increment_score(player_num):
+    if player_num != "p1" and player_num != "p2": raise ValueError(f"Invalid indentifier:{player_num}")
+    
+    try:
+        CONN = get_conn()
+        CUR = CONN.cursor()
+        # Check if match is ongoing
+        if not ldb.is_match_ongoing(CONN,CUR):
+            if TEST:
+                flash("Executed requeset with response: 300")
+                return redirect("/knapper")
+            else:
+                return "300"
+        ldb.increment_score(CONN,CUR, player_num)
+
+        game_stat = ldb.get_local_game_state(CONN,CUR)
+        p1_id = game_stat[1]
+        p2_id = game_stat[2]
+        p1_score = game_stat[7]
+        p2_score = game_stat[8]
+        
+        diff = abs(p1_score - p2_score)
+        if (p1_score >= 11 and diff >= 2) or (p2_score >= 11 and diff >= 2):
+            ldb.limbo_match(CONN,CUR)
+            bu.add_result(p1_id,p2_id,p1_score,p2_score)
+            
+        if TEST:
+            flash(f"Executed request with response: 200")
+            return redirect("/knapper")
+        return "200"
+    except Exception as e:
+        return str(e)
+
+
 
 @app.route("/pongdog/add_pong_dog",methods = ["POST"])
 def add_pong_dog():
     card_no = request.form["card_id"]
     card_name = request.form["card_name"]
     
-    card_id = reverseBytes(int(card_no))
+    card_id = pu.reverseBytes(int(card_no))
     url = f"https://jakvah.pythonanywhere.com/add_new_pong_user/{card_id}/{card_name}"
     r = requests.post(url)
     
@@ -39,48 +133,25 @@ def add_pong_dog():
         return redirect("/pongdog/register")
 
 
-@app.route("/pongdog/leaderboard")
-def leaderboard():
-    return render_template("pongdog/leaderboard.html")
-
-@app.route("/pongdog/match_page")
-def match_page():
-    return render_template("pongdog/match_page.html")
-
-@app.route("/dynamic_view")
-def dynamic_view():
-    pass
-
-@app.route("/pongdog/match_page_2")
-
-@app.route("/test")
-def test():
-    return render_template("test.html")
-
-
-@app.route("/pongdog/lb_dynamic")
-def dynamic():
-    return render_template("pongdog/lb_dynamic.html")
-
 @app.route("/get_local_game_stat")
 def get_local_scores():
+    CONN = get_conn()
+    CUR = CONN.cursor()
     match_dict = {}
+    table = ldb.get_local_game_state(CONN,CUR)
     
-    lines = []
-    with open('pongdog/crisphw/utils/scores.txt') as f:
-        lines = f.readlines()
-
-    start_time = lines[0]
-    p1_id = int(lines[1].split(",")[0])
-    p1_name = lines[1].split(",")[1]        
-    p1_elo = int(lines[1].split(",")[2])
-    p1_score = int(lines[1].split(",")[3])
-
-    p2_id = int(lines[2].split(",")[0])
-    p2_name = lines[2].split(",")[1]
-    p2_elo = int(lines[2].split(",")[2])
-    p2_score = int(lines[2].split(",")[3])
+    ongoing = table[0]
+    p1_id = table[1]
+    p2_id = table[2]
+    p1_elo = table[3]
+    p2_elo = table[4]
+    p1_name = table[5]
+    p2_name = table[6]
+    p1_score = table[7]
+    p2_score = table[8]
+    start_time = table[9]
     
+
     if (abs(p1_score -p2_score) >= 2) and (p1_score >= 11 or p2_score >= 11):
         ongoing = 2
     elif p1_score == -1 and p2_score == -1:
@@ -118,12 +189,12 @@ def get_local_scores():
         match_dict["player1_name"] = p1_name
         match_dict["player2_name"] = p2_name
 
-        match_dict["player1_elo_win"] = elo_at_stake(p1_elo, p2_elo)[0]
+        match_dict["player1_elo_win"] = pu.elo_at_stake(p1_elo, p2_elo)[0]
         match_dict["player1_elo_loss"] = - \
-            (elo_at_stake(p1_elo, p2_elo)[1])
-        match_dict["player2_elo_win"] = elo_at_stake(p1_elo, p2_elo)[1]
+            (pu.elo_at_stake(p1_elo, p2_elo)[1])
+        match_dict["player2_elo_win"] = pu.elo_at_stake(p1_elo, p2_elo)[1]
         match_dict["player2_elo_loss"] = - \
-            (elo_at_stake(p1_elo, p2_elo)[0])
+            (pu.elo_at_stake(p1_elo, p2_elo)[0])
 
         match_dict["player1_elo"] = p1_elo
         match_dict["player2_elo"] = p2_elo
@@ -133,57 +204,26 @@ def get_local_scores():
         return response
 
 
-@app.route("/reset_match_status/pongdg4life")
-def reset_local():
-    with open('pongdog/crisphw/utils/scores.txt', 'w') as f:
-        f.writelines("- \n")
-        f.writelines("-1,-1,-1,-1 \n")
-        f.writelines("-1,-1,-1,-1 \n")
+@app.route("/reset_match_status/pongdg4life", methods = ["POST"])
+def reset_mach():
+    try:
+        CONN = get_conn()
+        CUR = CONN.cursor()
+        ldb.reset_match(CONN,CUR)
+        if TEST:
+            flash(f"Executed request with response: 200")
+            return redirect("/knapper")
+        return "200"
+    except Exception as e:
+        return "400"
 
-    
-
-# FROM: https://github.com/hermabe/rfid-card
-# Reverses CARD EM number to RFID number
-def reverseBytes(number):
-    binary = "{0:0>32b}".format(number) # Zero-padded 32-bit binary
-    byteList = [binary[i:i+8][::-1] for i in range(0, 32, 8)] # Reverse each byte
-    return int(''.join(byteList), 2) # Join and convert to decimal
-    # return int(''.join(["{0:0>32b}".format(number)[i:i+8][::-1] for i in range(0, 32, 8)]), 2)
-
-def elo_at_stake(p1_ELO, p2_ELO):
-    adv = 1800  # if you have adv more points than your opponent you are 10 times more likely to win
-    k = 50
-
-    pow1 = ((p1_ELO-p2_ELO)/adv)
-    exp_score1 = 1/(1+10**pow1)
-    p1_win = k*exp_score1  # p1_win is what p1 wins and p2 looses
-
-    pow2 = ((p2_ELO-p1_ELO)/adv)
-    exp_score2 = 1/(1+10**pow2)
-    p2_win = k*exp_score2  # p2_win is what p2 wins and p1 looses
-
-    return round(p1_win), round(p2_win)
-
-
-def new_scores(p1_ELO, p2_ELO, winner):  # winner is 'p1' or 'p2'
-    p1_win, p2_win = elo_at_stake(p1_ELO, p2_ELO)
-    if winner == 'p1':
-        p1_ELO_new = p1_ELO + p1_win
-        p2_ELO_new = p2_ELO - p1_win
-    elif winner == 'p2':
-        p1_ELO_new = p1_ELO - p2_win
-        p2_ELO_new = p2_ELO + p2_win
-    else:
-        print("Theres a bloody problem here, wankers, arrrrrghhh")
-
-    if p1_ELO_new <= 0:
-        p1_ELO_new = 0
-
-    if p2_ELO_new <= 0:
-        p2_ELO_new = 0
-
-    return p1_ELO_new, p2_ELO_new
 
 if __name__ == '__main__':
+    print("Initializing database...")
+    #CONN = get_conn()
+    #CUR = CONN.cursor()
+    ldb.setup(docker=pc.DOCKER)
+
     # Set debug false if it is ever to be deployed
-    app.run(debug=True) 
+    print("Starting game server ...")
+    app.run(debug=True, host="0.0.0.0") 
